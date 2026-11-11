@@ -16641,10 +16641,20 @@ let viVoice=null, onlineFailed=false;
 const ttsUrl=t=>'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=vi&q='+encodeURIComponent(t);
 const onlineWanted=()=>!hosted&&settings.source!=='device'&&navigator.onLine!==false;
 function cleanSpeech(t){return String(t).replace(/\([^)]*\)/g,' ').replace(/\.\.\.|…|_+/g,', ').replace(/—/g,', ').replace(/\s+/g,' ').trim();}
-function pickVoice(){const rank=v=>/natural|online/i.test(v.name)?0:/google/i.test(v.name)?1:/microsoft/i.test(v.name)?2:3;viVoice=speechSynthesis.getVoices().filter(v=>/^vi/i.test(v.lang)).sort((a,b)=>rank(a)-rank(b))[0]||null;updateVoiceStatus();}
+let viVoices=[];
+function pickVoice(){const rank=v=>/natural|online/i.test(v.name)?0:/google/i.test(v.name)?1:/microsoft/i.test(v.name)?2:3;viVoices=speechSynthesis.getVoices().filter(v=>/^vi/i.test(v.lang)).sort((a,b)=>rank(a)-rank(b));viVoice=viVoices[0]||null;updateVoiceStatus();}
+// Dialogue speakers: slot 0 = lower/slower, slot 1 = higher/faster. Uses a second installed voice when there is one, plus pitch/rate so they differ even with a single voice.
+const PROFILES=[{pitch:.8,rate:.92,pb:.88},{pitch:1.3,rate:1.02,pb:1.15}];
+const voiceFor=slot=>slot===1&&viVoice?(viVoices.find(v=>v.name!==viVoice.name)||viVoice):viVoice;
+// Dialogue with both an installed voice and internet: speaker A = device voice (e.g. Microsoft An, male), speaker B = online voice (female) -> two truly different voices, no pitch tricks.
+const canOnline=()=>!hosted&&navigator.onLine!==false&&!onlineFailed;
+const mixed=slot=>slot!==undefined&&!!viVoice&&canOnline();
+const useDevice=(slot,t)=>mixed(slot)?slot===0:(!onlineWanted()||(settings.source==='auto'&&onlineFailed&&viVoice));
+const prof=slot=>mixed(slot)?null:PROFILES[slot];
+function setOnlineRate(slow,slot){const p=prof(slot);audio.preservesPitch=audio.mozPreservesPitch=audio.webkitPreservesPitch=!p;audio.defaultPlaybackRate=audio.playbackRate=(slow?.7:1)*(p?p.pb:1);}
 function updateVoiceStatus(){const online=onlineWanted()&&!onlineFailed;$('voiceStatus').textContent=online?'Online · Hanoi accent':viVoice?viVoice.name:'No Vietnamese voice found';
   setChip('voiceChip',online?'globe':viVoice?'laptop':'alert',online?'Online voice':viVoice?'Device voice':'No voice',online||viVoice?'good':'warn');$('voiceHelp').hidden=online||!!viVoice;}
-function speakDevice(t,slow){if(!viVoice){$('voiceHelp').hidden=false;return;}const u=new SpeechSynthesisUtterance(t);u.voice=viVoice;u.lang=viVoice.lang;u.rate=slow?.6:.9;speechSynthesis.speak(u);}
+function speakDevice(t,slow,slot){if(!viVoice){$('voiceHelp').hidden=false;return;}const v=(mixed(slot)?viVoice:voiceFor(slot))||viVoice,p=prof(slot),u=new SpeechSynthesisUtterance(t);u.voice=v;u.lang=v.lang;u.rate=(slow?.6:.9)*(p?p.rate:1);if(p)u.pitch=p.pitch;speechSynthesis.speak(u);}
 // Long texts (readings, dialogues) are spoken in parts: the online voice takes about 200 characters at a time
 let speakRun=0;
 function speechParts(t){const out=[];let cur='';
@@ -16654,23 +16664,23 @@ function speechParts(t){const out=[];let cur='';
 function stopSpeech(){speakRun++;audio.pause();if('speechSynthesis'in window)speechSynthesis.cancel();}
 // items: strings or {t,pitch}; onItem(i) is told which item is playing (-1 at the end)
 function speakSeq(items,slow,onItem){stopSpeech();const run=speakRun;slow=slow||settings.speed==='slow';
-  const q=[];items.forEach((x,i)=>{const it=typeof x==='string'?{t:x}:x;speechParts(cleanSpeech(it.t)).forEach(p=>q.push({p,i,pitch:it.pitch}));});
+  const q=[];items.forEach((x,i)=>{const it=typeof x==='string'?{t:x}:x;speechParts(cleanSpeech(it.t)).forEach(p=>q.push({p,i,slot:it.slot}));});
   let k=0;
-  const step=()=>{if(run!==speakRun)return;if(k>=q.length){if(onItem)onItem(-1);return;}const {p,i,pitch}=q[k++];if(onItem)onItem(i);
-    const device=()=>{if(!viVoice){$('voiceHelp').hidden=false;return;}const u=new SpeechSynthesisUtterance(p);u.voice=viVoice;u.lang=viVoice.lang;u.rate=slow?.6:.9;if(pitch)u.pitch=pitch;
+  const step=()=>{if(run!==speakRun)return;if(k>=q.length){if(onItem)onItem(-1);return;}const {p,i,slot}=q[k++];if(onItem)onItem(i);
+    const device=()=>{if(!viVoice){$('voiceHelp').hidden=false;return;}const v=(mixed(slot)?viVoice:voiceFor(slot))||viVoice,pr=prof(slot),u=new SpeechSynthesisUtterance(p);u.voice=v;u.lang=v.lang;u.rate=(slow?.6:.9)*(pr?pr.rate:1);if(pr)u.pitch=pr.pitch;
       u.onend=u.onerror=()=>{if(run===speakRun)setTimeout(step,300);};speechSynthesis.speak(u);};
-    if(!onlineWanted()||(settings.source==='auto'&&onlineFailed&&viVoice))return device();
-    audio.src=ttsUrl(p);audio.defaultPlaybackRate=audio.playbackRate=slow?.7:1;audio.onended=()=>{if(run===speakRun)setTimeout(step,300);};
+    if(useDevice(slot))return device();
+    audio.src=ttsUrl(p);setOnlineRate(slow,slot);audio.onended=()=>{if(run===speakRun)setTimeout(step,300);};
     audio.play().then(()=>{if(onlineFailed){onlineFailed=false;updateVoiceStatus();}}).catch(e=>{if(e.name==='AbortError')return;onlineFailed=true;updateVoiceStatus();device();});};
   step();}
-function speak(text,slow){const t=cleanSpeech(text);if(!t)return;if(t.length>190)return speakSeq([t],slow);speakRun++;slow=slow||settings.speed==='slow';audio.pause();if('speechSynthesis'in window)speechSynthesis.cancel();
-  if(!onlineWanted()||(settings.source==='auto'&&onlineFailed&&viVoice))return speakDevice(t,slow);
-  audio.src=ttsUrl(t);audio.defaultPlaybackRate=audio.playbackRate=slow?.7:1;
-  audio.play().then(()=>{if(onlineFailed){onlineFailed=false;updateVoiceStatus();}}).catch(e=>{if(e.name==='AbortError')return;onlineFailed=true;updateVoiceStatus();speakDevice(t,slow);});}
+function speak(text,slow,slot){const t=cleanSpeech(text);if(!t)return;if(t.length>190)return speakSeq([{t,slot}],slow);speakRun++;slow=slow||settings.speed==='slow';audio.pause();if('speechSynthesis'in window)speechSynthesis.cancel();
+  if(useDevice(slot))return speakDevice(t,slow,slot);
+  audio.src=ttsUrl(t);setOnlineRate(slow,slot);
+  audio.play().then(()=>{if(onlineFailed){onlineFailed=false;updateVoiceStatus();}}).catch(e=>{if(e.name==='AbortError')return;onlineFailed=true;updateVoiceStatus();speakDevice(t,slow,slot);});}
 if('speechSynthesis'in window){pickVoice();speechSynthesis.addEventListener('voiceschanged',pickVoice);}else updateVoiceStatus();
 addEventListener('online',()=>{onlineFailed=false;updateVoiceStatus();});addEventListener('offline',updateVoiceStatus);
 addEventListener('touchend',()=>{if('speechSynthesis'in window)speechSynthesis.speak(new SpeechSynthesisUtterance(''));},{once:true});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-speak]');if(b)speak(b.dataset.speak,b.dataset.slow==='1');});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-speak]');if(b)speak(b.dataset.speak,b.dataset.slow==='1',b.dataset.slot===undefined?undefined:+b.dataset.slot);});
 const autoSay=(t,delay=250)=>{if(settings.autoplay)setTimeout(()=>speak(t),delay);};
 const sayBtns=t=>`<button class="iconbtn" data-speak="${escapeHtml(t)}" title="Listen">${ic('speaker')}</button><button class="iconbtn" data-speak="${escapeHtml(t)}" data-slow="1" title="Slow">${ic('slow')}</button>`;
 const bigPlay=t=>`<div class="listen"><button class="playbig" data-speak="${escapeHtml(t)}" title="Play">${ic('speaker')}</button><button class="iconbtn" data-speak="${escapeHtml(t)}" data-slow="1" title="Slow">${ic('slow')}</button></div>`;
@@ -17051,9 +17061,9 @@ const RENDER={
     el.innerHTML=`<div class="kind">Dialogue</div><div class="prompt">Listen to the conversation, then answer the questions</div>
       <div class="listen"><button class="playbig" id="dlgPlay" title="Play the dialogue">${ic('speaker')}</button><button class="iconbtn" id="dlgSlow" title="Slow">${ic('slow')}</button><span class="small">${l.lines.length} lines · ${who.map(escapeHtml).join(' and ')}</span></div>
       <div class="actions" style="margin-top:4px"><button class="ghost" id="trBtn">${ic('book')} Show the words</button><button class="ghost" id="enBtn" hidden>${ic('chat')} Show English</button></div>
-      <div class="dlg" id="dlg" hidden>${l.lines.map(x=>`<div class="dline ${who.indexOf(x.who)%2?'b':''}"><span class="who">${escapeHtml(x.who)}</span><div class="bub"><div class="vi">${escapeHtml(x.vi)} <button class="iconbtn" data-speak="${escapeHtml(x.vi)}" title="Listen">${ic('speaker')}</button></div><div class="en" hidden>${escapeHtml(x.en)}</div></div></div>`).join('')}</div>
+      <div class="dlg" id="dlg" hidden>${l.lines.map(x=>`<div class="dline ${who.indexOf(x.who)%2?'b':''}"><span class="who">${escapeHtml(x.who)}</span><div class="bub"><div class="vi">${escapeHtml(x.vi)} <button class="iconbtn" data-speak="${escapeHtml(x.vi)}" data-slot="${who.indexOf(x.who)%2}" title="Listen">${ic('speaker')}</button></div><div class="en" hidden>${escapeHtml(x.en)}</div></div></div>`).join('')}</div>
       <div class="actions"><button class="primary" id="nextBtn">To the questions ${ic('arrow')}</button></div>`;
-    const play=slow=>speakSeq(l.lines.map(x=>({t:x.vi,pitch:who.indexOf(x.who)%2?1.2:.95})),slow,i=>el.querySelectorAll('.dline').forEach((d,k)=>d.classList.toggle('playing',k===i)));
+    const play=slow=>speakSeq(l.lines.map(x=>({t:x.vi,slot:who.indexOf(x.who)%2})),slow,i=>el.querySelectorAll('.dline').forEach((d,k)=>d.classList.toggle('playing',k===i)));
     $('dlgPlay').onclick=()=>play(false);$('dlgSlow').onclick=()=>play(true);
     $('trBtn').onclick=()=>{const d=$('dlg');d.hidden=!d.hidden;$('enBtn').hidden=d.hidden;$('trBtn').innerHTML=ic('book')+(d.hidden?' Show the words':' Hide the words');};
     $('enBtn').onclick=()=>{const e=[...el.querySelectorAll('.dline .en')],show=e[0].hidden;e.forEach(x=>x.hidden=!show);$('enBtn').innerHTML=ic('chat')+(show?' Hide English':' Show English');};
@@ -17067,7 +17077,7 @@ const RENDER={
     el.innerHTML=`<div class="kind">${isL?'Dialogue':'Reading'} · question ${st.i+1} / ${src.questions.length}${tryTag()}</div><div class="prompt">${escapeHtml(q.q)}</div>${ref}
       <div class="choices one">${st.order.map(k=>`<button class="choice" data-k="${k}">${escapeHtml(q.options[k])}</button>`).join('')}</div>${hintArea}<div class="fb"></div>
       <div class="actions"><button class="iconbtn" id="hintBtn" title="Hint">${ic('bulb')}</button>${nextBtn()}</div>`;
-    if($('qPlay'))$('qPlay').onclick=()=>speakSeq(src.lines.map(x=>x.vi));
+    if($('qPlay'))$('qPlay').onclick=()=>{const w=[...new Set(src.lines.map(x=>x.who))];speakSeq(src.lines.map(x=>x.who?{t:x.vi,slot:w.indexOf(x.who)%2}:x.vi));}
     el.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{if(el.dataset.done)return;el.dataset.done=1;const ok=+b.dataset.k===q.answer;
       el.querySelectorAll('.choice').forEach(x=>{if(+x.dataset.k===q.answer)x.classList.add('correct');});if(!ok)b.classList.add('wrong');
       el.querySelector('.fb').innerHTML=verdict(ok?'ok':'no',ok?'Correct!':'Not quite')+verdictNote(ok);record(ok);finishCheck(ok);});
