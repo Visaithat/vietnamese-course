@@ -93,6 +93,7 @@ kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2
 .tile .tic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--soft);color:var(--accent);flex:none}.tile.hot .tic{background:var(--hotsoft);color:var(--hot)}
 .tile>span:last-child{display:flex;flex-direction:column}.tile b{font-size:1.2rem;line-height:1.1}.tile small{color:var(--muted);font-size:.8rem;font-weight:500}.tile:disabled{opacity:.55}
 /* Lesson */
+.wimg{margin:10px 0 4px;text-align:center}.wimg img{max-width:100%;max-height:260px;border-radius:14px;object-fit:cover;background:var(--chip)}.wimg figcaption{font-size:.68rem;color:var(--muted2);margin-top:4px}.wimg a{color:inherit}
 .lessonbar{display:flex;align-items:center;gap:12px;margin-bottom:12px}.lessonbar .progress{flex:1;height:10px}.lessonbar .count{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}.lessonbar .iconbtn{background:var(--card);border:1px solid var(--line);color:var(--muted)}
 .stage{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(20px,4vw,36px);box-shadow:var(--shadow);min-height:340px;animation:fade .2s ease-out}
 .kind{color:var(--accent);font-weight:700;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase}
@@ -1182,35 +1183,35 @@ COURSE.push(
   { vi: "Bạn tự làm cái này à?", en: "You made this yourself?" }
 ] },
 { day: 24, title: "Hanoi food", words: [
-  { vi: "bún chả", en: "grilled pork with rice noodles (a Hanoi classic)", ex: "Bún chả Hà Nội rất ngon.", exEn: "Hanoi bún chả is very tasty.",
+  { vi: "bún chả", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/B%C3%BAn_ch%E1%BA%A3_Vietnamese_food.jpg/500px-B%C3%BAn_ch%E1%BA%A3_Vietnamese_food.jpg", imgLic: "CC BY 2.0", imgPage: "https://commons.wikimedia.org/wiki/File:B%C3%BAn_ch%E1%BA%A3_Vietnamese_food.jpg", en: "grilled pork with rice noodles (a Hanoi classic)", ex: "Bún chả Hà Nội rất ngon.", exEn: "Hanoi bún chả is very tasty.",
     make: { en: "Today I (tôi) want to eat bún chả.", vi: ["Hôm nay tôi muốn ăn bún chả.", "Tôi muốn ăn bún chả hôm nay."] } },
-  { vi: "bún bò", en: "beef noodle soup (bún bò Huế)", ex: "Cho tôi một bát bún bò.", exEn: "Give me a bowl of beef noodle soup.",
+  { vi: "bún bò", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/B%C3%BAn_b%C3%B2_Hu%E1%BA%BF-Feb_2025.jpg/500px-B%C3%BAn_b%C3%B2_Hu%E1%BA%BF-Feb_2025.jpg", imgLic: "CC BY-SA 4.0", imgPage: "https://commons.wikimedia.org/wiki/File:B%C3%BAn_b%C3%B2_Hu%E1%BA%BF-Feb_2025.jpg", en: "beef noodle soup (bún bò Huế)", ex: "Cho tôi một bát bún bò.", exEn: "Give me a bowl of beef noodle soup.",
     make: { en: "(to an older man, anh) Do you like bún bò?", vi: ["Anh có thích bún bò không?", "Anh thích bún bò không?"] } },
-  { vi: "bánh cuốn", en: "steamed rice rolls with pork and mushroom", ex: "Sáng nay tôi ăn bánh cuốn.", exEn: "This morning I ate bánh cuốn.",
+  { vi: "bánh cuốn", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b2/B%C3%A1nh_cu%E1%BB%91n_Thanh_Tr%C3%AC.jpg/500px-B%C3%A1nh_cu%E1%BB%91n_Thanh_Tr%C3%AC.jpg", imgLic: "Public domain", imgPage: "https://commons.wikimedia.org/wiki/File:B%C3%A1nh_cu%E1%BB%91n_Thanh_Tr%C3%AC.jpg", en: "steamed rice rolls with pork and mushroom", ex: "Sáng nay tôi ăn bánh cuốn.", exEn: "This morning I ate bánh cuốn.",
     make: { en: "We (chúng tôi) eat bánh cuốn every morning (mỗi sáng).", vi: ["Chúng tôi ăn bánh cuốn mỗi sáng.", "Mỗi sáng chúng tôi ăn bánh cuốn."] } },
-  { vi: "nem rán", en: "fried spring rolls (northern; south: chả giò)", ex: "Mẹ tôi làm nem rán rất ngon.", exEn: "My mother makes very tasty fried spring rolls.",
+  { vi: "nem rán", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Vietnamese_fried_spring_rolls_in_Ho_Chi_Minh_City%2C_Vietnam.jpg/500px-Vietnamese_fried_spring_rolls_in_Ho_Chi_Minh_City%2C_Vietnam.jpg", imgLic: "CC BY 4.0", imgPage: "https://commons.wikimedia.org/wiki/File:Vietnamese_fried_spring_rolls_in_Ho_Chi_Minh_City,_Vietnam.jpg", en: "fried spring rolls (northern; south: chả giò)", ex: "Mẹ tôi làm nem rán rất ngon.", exEn: "My mother makes very tasty fried spring rolls.",
     make: { en: "Give me one plate of nem rán (use cho tôi).", vi: ["Cho tôi một đĩa nem rán."] } },
-  { vi: "xôi", en: "sticky rice", ex: "Bà ấy bán xôi ở chợ.", exEn: "She (an older woman) sells sticky rice at the market.",
+  { vi: "xôi", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/X%C3%B4i_G%C3%A0_Tr%E1%BB%A9ng_Non_L%E1%BA%A1p_X%C6%B0%E1%BB%9Bng_%28Sticky_rice_with_chicken_and_eggs%2C_and_chinese_sausages%29.jpg/500px-X%C3%B4i_G%C3%A0_Tr%E1%BB%A9ng_Non_L%E1%BA%A1p_X%C6%B0%E1%BB%9Bng_%28Sticky_rice_with_chicken_and_eggs%2C_and_chinese_sausages%29.jpg", imgLic: "CC0", imgPage: "https://commons.wikimedia.org/wiki/File:X%C3%B4i_G%C3%A0_Tr%E1%BB%A9ng_Non_L%E1%BA%A1p_X%C6%B0%E1%BB%9Bng_(Sticky_rice_with_chicken_and_eggs,_and_chinese_sausages).jpg", en: "sticky rice", ex: "Bà ấy bán xôi ở chợ.", exEn: "She (an older woman) sells sticky rice at the market.",
     make: { en: "I (tôi) want to buy sticky rice.", vi: ["Tôi muốn mua xôi."] } },
-  { vi: "cháo", en: "rice porridge, congee", ex: "Khi mệt, tôi thường ăn cháo.", exEn: "When I'm tired, I usually eat rice porridge.",
+  { vi: "cháo", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Ch%C3%A1o%2C_Da_Nang%2C_Vietnam.jpg/500px-Ch%C3%A1o%2C_Da_Nang%2C_Vietnam.jpg", imgLic: "CC BY-SA 4.0", imgPage: "https://commons.wikimedia.org/wiki/File:Ch%C3%A1o,_Da_Nang,_Vietnam.jpg", en: "rice porridge, congee", ex: "Khi mệt, tôi thường ăn cháo.", exEn: "When I'm tired, I usually eat rice porridge.",
     make: { en: "I (tôi) want to eat chicken porridge (cháo gà).", vi: ["Tôi muốn ăn cháo gà."] } },
-  { vi: "chả cá", en: "turmeric grilled fish with dill (a Hanoi dish)", ex: "Chúng ta đi ăn chả cá nhé.", exEn: "Let's go eat chả cá.",
+  { vi: "chả cá", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Ch%E1%BA%A3_c%C3%A1_L%C3%A3_V%E1%BB%8Dng_H%C3%A0_N%E1%BB%99i.jpg/500px-Ch%E1%BA%A3_c%C3%A1_L%C3%A3_V%E1%BB%8Dng_H%C3%A0_N%E1%BB%99i.jpg", imgLic: "Public domain", imgPage: "https://commons.wikimedia.org/wiki/File:Ch%E1%BA%A3_c%C3%A1_L%C3%A3_V%E1%BB%8Dng_H%C3%A0_N%E1%BB%99i.jpg", en: "turmeric grilled fish with dill (a Hanoi dish)", ex: "Chúng ta đi ăn chả cá nhé.", exEn: "Let's go eat chả cá.",
     make: { en: "Chả cá is very tasty.", vi: ["Chả cá rất ngon."] } },
-  { vi: "lẩu", en: "hotpot", ex: "Lẩu ở nhà hàng này rất cay.", exEn: "The hotpot at this restaurant is very spicy.",
+  { vi: "lẩu", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Thai_suki%2C_Thai_hot_pot_preparation%2C_Dining_in_Bangkok%2C_Thailand.jpg/500px-Thai_suki%2C_Thai_hot_pot_preparation%2C_Dining_in_Bangkok%2C_Thailand.jpg", imgLic: "CC BY 4.0", imgPage: "https://commons.wikimedia.org/wiki/File:Thai_suki,_Thai_hot_pot_preparation,_Dining_in_Bangkok,_Thailand.jpg", en: "hotpot", ex: "Lẩu ở nhà hàng này rất cay.", exEn: "The hotpot at this restaurant is very spicy.",
     make: { en: "We (chúng tôi) want to eat fish hotpot (lẩu cá).", vi: ["Chúng tôi muốn ăn lẩu cá."] } },
-  { vi: "đậu phụ", en: "tofu (northern; south: đậu hũ)", ex: "Tôi không ăn thịt, tôi ăn đậu phụ.", exEn: "I don't eat meat, I eat tofu.",
+  { vi: "đậu phụ", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Pork_stuffed_fried_tofu%2C_with_tomato_and_onion.jpg/500px-Pork_stuffed_fried_tofu%2C_with_tomato_and_onion.jpg", imgLic: "CC BY 2.0", imgPage: "https://commons.wikimedia.org/wiki/File:Pork_stuffed_fried_tofu,_with_tomato_and_onion.jpg", en: "tofu (northern; south: đậu hũ)", ex: "Tôi không ăn thịt, tôi ăn đậu phụ.", exEn: "I don't eat meat, I eat tofu.",
     make: { en: "(to a young waiter, em) Do you have tofu?", vi: ["Em có đậu phụ không?", "Em ơi, có đậu phụ không?"] } },
-  { vi: "thịt bò", en: "beef", ex: "Thịt bò ở đây rất ngon.", exEn: "The beef here is very good.",
+  { vi: "thịt bò", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/Raw_beef_slices.jpg/500px-Raw_beef_slices.jpg", imgLic: "CC BY 2.0", imgPage: "https://commons.wikimedia.org/wiki/File:Raw_beef_slices.jpg", en: "beef", ex: "Thịt bò ở đây rất ngon.", exEn: "The beef here is very good.",
     make: { en: "I (tôi) don't eat beef.", vi: ["Tôi không ăn thịt bò."] } },
-  { vi: "thịt lợn", en: "pork (northern; south: thịt heo)", ex: "Nem rán có thịt lợn và rau.", exEn: "Fried spring rolls have pork and vegetables.",
+  { vi: "thịt lợn", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/HK_food_ingredient_red_meat_frozen_pork_chop_raw_butt_steak_October_2021_SS2_011.jpg/500px-HK_food_ingredient_red_meat_frozen_pork_chop_raw_butt_steak_October_2021_SS2_011.jpg", imgLic: "CC BY-SA 4.0", imgPage: "https://commons.wikimedia.org/wiki/File:HK_food_ingredient_red_meat_frozen_pork_chop_raw_butt_steak_October_2021_SS2_011.jpg", en: "pork (northern; south: thịt heo)", ex: "Nem rán có thịt lợn và rau.", exEn: "Fried spring rolls have pork and vegetables.",
     make: { en: "She (cô ấy) doesn't like pork.", vi: ["Cô ấy không thích thịt lợn."] } },
-  { vi: "tôm", en: "shrimp, prawn", ex: "Món này có tôm không?", exEn: "Does this dish have shrimp?",
+  { vi: "tôm", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Cooked_shrimp_on_a_plate.jpg/500px-Cooked_shrimp_on_a_plate.jpg", imgLic: "CC BY 2.0", imgPage: "https://commons.wikimedia.org/wiki/File:Cooked_shrimp_on_a_plate.jpg", en: "shrimp, prawn", ex: "Món này có tôm không?", exEn: "Does this dish have shrimp?",
     make: { en: "I (tôi) can't eat shrimp (use không ăn được).", vi: ["Tôi không ăn được tôm."] } },
-  { vi: "cua", en: "crab", ex: "Bố tôi rất thích ăn cua.", exEn: "My father really likes eating crab.",
+  { vi: "cua", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Cua_c%C3%B9_k%C3%AC_lu%E1%BB%99c.jpg/500px-Cua_c%C3%B9_k%C3%AC_lu%E1%BB%99c.jpg", imgLic: "CC BY-SA 3.0", imgPage: "https://commons.wikimedia.org/wiki/File:Cua_c%C3%B9_k%C3%AC_lu%E1%BB%99c.jpg", en: "crab", ex: "Bố tôi rất thích ăn cua.", exEn: "My father really likes eating crab.",
     make: { en: "We (chúng tôi) want to buy two crabs (use con).", vi: ["Chúng tôi muốn mua hai con cua."] } },
-  { vi: "hành", en: "onion, spring onion", ex: "Cho tôi thêm hành nhé.", exEn: "Give me more onion, please.",
+  { vi: "hành", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8c/Spring_onion_whole.JPG/500px-Spring_onion_whole.JPG", imgLic: "Public domain", imgPage: "https://commons.wikimedia.org/wiki/File:Spring_onion_whole.JPG", en: "onion, spring onion", ex: "Cho tôi thêm hành nhé.", exEn: "Give me more onion, please.",
     make: { en: "(to a young waiter, em) Don't put in onion, OK? (use đừng cho, nhé)", vi: ["Em đừng cho hành nhé.", "Đừng cho hành nhé."] } },
-  { vi: "tỏi", en: "garlic", ex: "Món này có nhiều tỏi quá.", exEn: "This dish has too much garlic.",
+  { vi: "tỏi", img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Garlic_bulbs_and_cloves.jpg/500px-Garlic_bulbs_and_cloves.jpg", imgLic: "CC BY-SA 4.0", imgPage: "https://commons.wikimedia.org/wiki/File:Garlic_bulbs_and_cloves.jpg", en: "garlic", ex: "Món này có nhiều tỏi quá.", exEn: "This dish has too much garlic.",
     make: { en: "I (tôi) don't eat garlic.", vi: ["Tôi không ăn tỏi."] } }
 ], dictation: [
   { vi: "Sáng nay tôi ăn bánh cuốn ở gần nhà.", en: "This morning I ate bánh cuốn near my house." },
@@ -16956,7 +16957,7 @@ const RENDER={
     checkFlow(el,[w.vi],{onResult:g=>graded(g),extraAfter:`<div class="small" style="margin-top:6px">${escapeHtml(w.vi)} · ${escapeHtml(w.en)}</div>${exampleBox(w)}`});},
 
   learn(st,el){const w=WORDS[st.id],d=dayMap[w.day],k=d.words.indexOf(w)+1;
-    el.innerHTML=`<div class="kind">New word ${k} / ${d.words.length}</div><div class="big">${escapeHtml(w.vi)} ${sayBtns(w.vi)}</div><div class="meaning">${escapeHtml(w.en)}</div>
+    el.innerHTML=`<div class="kind">New word ${k} / ${d.words.length}</div><div class="big">${escapeHtml(w.vi)} ${sayBtns(w.vi)}</div><div class="meaning">${escapeHtml(w.en)}</div>${w.img?`<figure class="wimg"><img src="${escapeHtml(w.img)}" alt="${escapeHtml(w.en)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('figure').hidden=true"><figcaption>Photo: <a href="${escapeHtml(w.imgPage)}" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a> · ${escapeHtml(w.imgLic)}</figcaption></figure>`:''}
       <div class="tones">${toneChips(w.vi)}</div>
       <div class="label">Example</div>${exampleBox(w)}
       <div class="actions"><button class="primary" id="nextBtn">Got it ${ic('arrow')}</button></div>`;
