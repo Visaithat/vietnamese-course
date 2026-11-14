@@ -191,6 +191,13 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
 .sphtile.new{border:2px dashed var(--line);background:transparent;color:var(--muted);align-items:center;justify-content:center;gap:6px}.sphtile.new .ic{width:26px;height:26px;color:var(--accent)}
 .sphmethods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
 .sphmethods .tile{width:100%}
+.letterbtn{position:relative}.letterbtn .badge{position:absolute;top:-6px;right:-6px;pointer-events:none}
+.sphpick{display:grid;gap:8px;margin:6px 0 4px}
+.pickrow{display:flex;align-items:center;gap:12px;background:var(--surface);border:2px solid transparent;border-radius:14px;padding:12px;cursor:pointer;text-align:left;width:100%;color:var(--ink)}
+.pickrow input{width:20px;height:20px;accent-color:var(--accent);flex:none}.pickrow>.ic{width:22px;height:22px;color:var(--accent);flex:none}
+.pickrow>span{display:flex;flex-direction:column;min-width:0}.pickrow b{overflow-wrap:anywhere}.pickrow small{color:var(--muted);font-size:.8rem}
+.pickrow:has(input:checked){border-color:var(--accent);background:var(--card)}
+.sphnote{background:var(--good);color:var(--goodink);border-radius:12px;padding:10px 12px;font-size:.9rem;margin:0 0 12px}
 .sphpaste{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 8px}
 .sphpaste textarea{width:100%;min-height:220px;font:inherit;line-height:1.55;padding:12px;border:2px solid transparent;border-radius:14px;background:var(--surface);color:var(--ink);resize:vertical}
 .sphpaste textarea:focus{border-color:var(--accent);outline:none;background:var(--card)}
@@ -236,6 +243,8 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
 <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5.5h16v10.5H10l-5 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
 <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
 <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3.5h9.5L20.5 8v12.5A1.5 1.5 0 0 1 19 22H6a1.5 1.5 0 0 1-1.5-1.5v-17A1.5 1.5 0 0 1 6 3.5z"/><path d="M15 3.5V9h5.5M8 13h8M8 17h5"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.8 7.2 8.2 6.3 8.2-6.3"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5z"/></symbol>
 <symbol id="i-order" viewBox="0 0 24 24"><rect x="3.5" y="5" width="7" height="5" rx="1.5"/><rect x="13.5" y="5" width="7" height="5" rx="1.5"/><rect x="3.5" y="14" width="17" height="5" rx="1.5"/></symbol>
 </defs></svg>
 <div class="auth" id="auth">
@@ -273,7 +282,7 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
     <button class="tab" data-view="map"><svg class="ic"><use href="#i-map"/></svg><span>Map</span></button>
     <button class="tab" data-view="forgot"><svg class="ic"><use href="#i-forgot"/></svg><span>Forgotten</span><span class="badge" id="forgotBadge" hidden>0</span></button>
     <button class="tab" data-view="words"><svg class="ic"><use href="#i-book"/></svg><span>Words</span></button>
-    <button class="tab" data-view="sph"><svg class="ic"><use href="#i-note"/></svg><span>SPH</span></button>
+    <button class="tab" data-view="sph"><svg class="ic"><use href="#i-note"/></svg><span>SPH</span><span class="badge" id="sphBadge" hidden>0</span></button>
     <button class="tab" data-view="settings"><svg class="ic"><use href="#i-sliders"/></svg><span>Settings</span></button>
     <button class="tab tab-help" data-view="help"><svg class="ic"><use href="#i-keyboard"/></svg><span>Typing</span></button>
   </nav>
@@ -16549,7 +16558,7 @@ const wordOf=id=>WORDS[id]||SPH_WORDS[id];
 const settings=Object.assign({source:'auto',speed:'normal',telex:true,autoplay:true},store.get('vdc_settings',{}));
 let session=store.get('vdc_session',null);
 let pausedSession=null, bindDashboard=()=>{};
-const sphUi={mode:'home',setId:null,method:null,draft:null,editI:-1,armDelete:false};
+const sphUi={mode:'home',setId:null,method:null,draft:null,editI:-1,armDelete:false,pick:{},toPick:{},accts:null,acctErr:'',sending:false,notice:'',inboxId:null};
 function validSession(x){return x&&(x.steps||[]).every(s=>!s.id||wordOf(s.id))?x:null;}
 if(!validSession(session))session=null;
 function save(o={}){store.set('vdc_progress',progress);store.set('vdc_srs',srs);store.set('vdc_forgot',forgot);store.set('vdc_settings',settings);store.set('vdc_sph',sph);store.set('vdc_session',session||pausedSession);store.set('vdc_savedAt',o.at||Date.now());saveStatus();if(!o.quiet)scheduleCloudWrite();}
@@ -16595,7 +16604,7 @@ async function rpc(fn,args){let r;
   try{r=await fetch(SB_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:h,body:JSON.stringify(args)});}
   catch(e){const er=new Error("Can't reach the server. Check your internet connection.");er.code='offline';throw er;}
   const t=await r.text();let j=null;try{j=t?JSON.parse(t):null;}catch(e){}
-  if(!r.ok){const m=String(j&&j.message||t||r.statusText),er=new Error(m);er.code=(m.match(/name_taken|bad_login|bad_session|bad_name|bad_password|bad_data/)||['server'])[0];throw er;}
+  if(!r.ok){const m=String(j&&j.message||t||r.statusText),er=new Error(m);er.code=/Could not find the function|schema cache/i.test(m)?'nosql':(m.match(/name_taken|bad_login|bad_session|bad_name|bad_password|bad_data/)||['server'])[0];throw er;}
   return j;}
 const cloud={state:ACCT?'connecting':'off',last:0,err:'',timer:null,busy:false,again:false,pulling:false};
 function cloudFail(e){if(e.code==='bad_session')return signOut('You were signed out. Please log in again.');cloud.state=e.code==='offline'?'offline':'error';cloud.err=e.message;saveStatus();}
@@ -17158,7 +17167,7 @@ function updateStats(){const done=Object.keys(progress.done).length;$('stDays').
   const live=progress.last!==null&&today()-progress.last<=1;$('stStreak').textContent=live?progress.streak:0;
   const fc=Object.keys(forgot).length;$('forgotBadge').hidden=!fc;$('forgotBadge').textContent=fc;}
 function showView(v){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
-  if(v==='map')renderMap();if(v==='words')renderWords();if(v==='forgot')renderForgot();if(v==='today')renderToday();if(v==='sph')renderSph();}
+  if(v==='map')renderMap();if(v==='words')renderWords();if(v==='forgot')renderForgot();if(v==='today')renderToday();if(v==='sph'){renderSph();pullSphInbox();}}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showView(t.dataset.view));
 function renderMap(){const nd=nextDay();let h='';
   for(let wk=0;wk*7<TOTAL_DAYS;wk++){const first=wk*7+1,sg=STAGES.find(s=>s.from===first);
@@ -17221,11 +17230,14 @@ function startSphPractice(set){
 }
 // The homework map: one tile per saved homework, like the course map
 function sphGridPanel(activeId){
-  const sets=liveSphSets();
+  const sets=liveSphSets(),share=canShare(),nIn=sphInbox.items.length;
   const tiles=sets.map((s,k)=>{const done=s.runs>0;
-    return `<button type="button" class="sphtile ${done?'done':''} ${s.id===activeId?'active':''}" data-sph-open="${s.id}" title="${escapeHtml(s.title)}"><b>${k+1}</b><span class="tt">${escapeHtml(s.title)}</span><span class="nw">${s.words.length} word${s.words.length===1?'':'s'}</span>${done?`<span class="sc">best ${s.best||0}%</span>`:''}<span class="st">${done?ic('check','sm'):''}</span></button>`;}).join('');
+    return `<button type="button" class="sphtile ${done?'done':''} ${s.id===activeId?'active':''}" data-sph-open="${s.id}" title="${escapeHtml(s.title)}"><b>${k+1}</b><span class="tt">${escapeHtml(s.title)}</span><span class="nw">${s.words.length} word${s.words.length===1?'':'s'}</span>${s.from?`<span class="nw">from ${escapeHtml(s.from)}</span>`:''}${done?`<span class="sc">best ${s.best||0}%</span>`:''}<span class="st">${done?ic('check','sm'):''}</span></button>`;}).join('');
   return `<div class="panel"><div class="vhead"><div><h2>Homework map</h2><p class="small">${sets.length?'Tap a homework to open it.':'School practice homework: save the words the teacher gave you, then practise them.'}</p></div>
-    <button class="primary" id="sphNew">${ic('pencil')} New homework</button></div>
+    <div class="actions" style="margin:0">${share?`<button type="button" class="iconbtn letterbtn" id="sphLetter" title="Received homework" aria-label="Received homework">${ic('mail')}<span class="badge" id="sphLetterBadge" ${nIn?'':'hidden'}>${nIn}</span></button>`:''}
+      ${share&&sets.length?`<button class="secondary" id="sphSendBtn">${ic('send')} Send homework</button>`:''}
+      <button class="primary" id="sphNew">${ic('pencil')} New homework</button></div></div>
+    ${sphUi.notice?`<p class="sphnote" id="sphNote">${escapeHtml(sphUi.notice)}</p>`:''}
     ${sets.length?`<div class="sphgrid">${tiles}<button type="button" class="sphtile new" id="sphNewTile">${ic('sparkle')}<span>New homework</span></button></div>`
       :`<div class="empty">${ic('note','lg')}<p>No homework yet. Tap <b>New homework</b> and add the words from class.</p></div>`}</div>`;
 }
@@ -17236,10 +17248,14 @@ function bindSphGrid(el){
   });
   const nw=()=>{sphUi.mode='create';sphUi.draft={title:'',words:[]};sphUi.method=null;sphUi.editI=-1;renderSph();};
   if($('sphNew'))$('sphNew').onclick=nw;if($('sphNewTile'))$('sphNewTile').onclick=nw;
+  if($('sphSendBtn'))$('sphSendBtn').onclick=openSphSend;
+  if($('sphLetter'))$('sphLetter').onclick=()=>{sphUi.mode='inbox';renderSph();pullSphInbox();};
 }
 function renderSph(){
   const box=$('sph');if(!box)return;
   const sets=liveSphSets();
+  if(sphUi.mode==='sendPick'||sphUi.mode==='sendTo'){if(canShare()&&sets.length){renderSphSend(box);return;}sphUi.mode='home';}
+  if(sphUi.mode==='inbox'||sphUi.mode==='inboxItem'){if(canShare()){renderSphInbox(box);return;}sphUi.mode='home';}
 
   if(sphUi.mode==='create'||sphUi.mode==='one'||sphUi.mode==='many'){
     if(sphUi.mode==='create'){
@@ -17315,7 +17331,7 @@ function renderSph(){
       <div class="vhead"><div>
         ${sphUi.method==='rename'
           ? `<label class="field" style="margin:0"><span>Title</span><div class="box"><input id="sphRename" maxlength="80" value="${escapeHtml(set.title)}"></div></label>`
-          : `<h2>${escapeHtml(set.title)}</h2><p class="small">${set.words.length} word${set.words.length===1?'':'s'}</p>`}
+          : `<h2>${escapeHtml(set.title)}</h2><p class="small">${set.words.length} word${set.words.length===1?'':'s'}${set.from?` · from ${escapeHtml(set.from)}`:''}</p>`}
       </div>
         <div class="actions" style="margin:0">${sphUi.method==='rename'
           ? `<button class="primary" id="sphRenameOk">Save</button><button class="ghost" id="sphRenameNo">Cancel</button>`
@@ -17382,6 +17398,112 @@ function renderSph(){
   sphUi.mode='home';
   box.innerHTML=sphGridPanel(null);
   bindSphGrid(box);
+}
+
+// ---------- SPH: send homework to other accounts / receive it ----------
+const canShare=()=>!!ACCT&&ACCT.token!=='none';
+const sphInbox={items:[],loaded:false,err:'',busy:false,answering:false};
+const SPH_ERR={offline:"Can't reach the server. Check your internet connection.",nosql:'Sharing is not set up yet: run supabase_setup.sql once in Supabase (SQL Editor).',bad_data:'That could not be sent. Check your choices and try again (up to 500 words per homework).'};
+const sphErrMsg=e=>SPH_ERR[e.code]||'Something went wrong: '+e.message;
+const sphViewActive=()=>$('view-sph').classList.contains('active');
+const sphGoHome=()=>{sphUi.mode='home';renderSph();};
+const cleanSphWords=a=>(Array.isArray(a)?a:[]).map(w=>({vi:String(w&&w.vi||'').trim().slice(0,120),tr:String(w&&w.tr||'').trim().slice(0,200)})).filter(w=>w.vi);
+function sphNotice(msg){sphUi.notice=msg;renderSph();setTimeout(()=>{if(sphUi.notice===msg){sphUi.notice='';const n=$('sphNote');if(n)n.remove();}},7000);}
+function updateSphBadge(){const n=sphInbox.items.length;['sphBadge','sphLetterBadge'].forEach(id=>{const b=$(id);if(b){b.hidden=!n;b.textContent=n;}});}
+async function pullSphInbox(){
+  if(!canShare()||sphInbox.busy||sphInbox.answering)return;sphInbox.busy=true;
+  const key=()=>sphInbox.items.map(i=>i.id).join()+'|'+sphInbox.err+'|'+sphInbox.loaded,before=key();
+  try{const r=await rpc('inbox_homework',{p_token:ACCT.token});sphInbox.items=Array.isArray(r)?r:[];sphInbox.err='';sphInbox.loaded=true;}
+  catch(e){if(e.code==='bad_session'){sphInbox.busy=false;return cloudFail(e);}sphInbox.err=sphErrMsg(e);sphInbox.loaded=true;}
+  sphInbox.busy=false;updateSphBadge();
+  if(key()!==before&&sphViewActive()&&(sphUi.mode==='home'||sphUi.mode==='inbox'||sphUi.mode==='inboxItem'))renderSph();
+}
+function openSphSend(){sphUi.mode='sendPick';sphUi.pick={};sphUi.toPick={};sphUi.accts=null;sphUi.acctErr='';sphUi.sending=false;renderSph();}
+async function loadSphAccounts(){
+  sphUi.accts=null;sphUi.acctErr='';
+  try{const r=await rpc('list_accounts',{p_token:ACCT.token});sphUi.accts=Array.isArray(r)?r:[];}
+  catch(e){if(e.code==='bad_session')return cloudFail(e);sphUi.acctErr=sphErrMsg(e);}
+  if(sphUi.mode==='sendTo')renderSph();
+}
+function renderSphSend(box){
+  const sets=liveSphSets(),plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+  if(sphUi.mode==='sendPick'){
+    const any=()=>sets.some(s=>sphUi.pick[s.id]);
+    box.innerHTML=`<div class="panel"><div class="vhead"><div><h2>Send homework</h2><p class="small">Step 1 of 2: choose the homework to send. You can pick more than one.</p></div>
+      <button class="ghost" id="sphCancel">Cancel</button></div>
+      <div class="sphpick">${sets.map(s=>`<label class="pickrow"><input type="checkbox" data-pick="${s.id}" ${sphUi.pick[s.id]?'checked':''}><span><b>${escapeHtml(s.title)}</b><small>${plural(s.words.length,'word')}</small></span></label>`).join('')}</div>
+      <div class="actions"><button class="primary" id="sphNext" ${any()?'':'disabled'}>Next</button></div></div>`;
+    $('sphCancel').onclick=sphGoHome;
+    box.querySelectorAll('[data-pick]').forEach(c=>c.onchange=()=>{sphUi.pick[c.dataset.pick]=c.checked;$('sphNext').disabled=!any();});
+    $('sphNext').onclick=()=>{sphUi.mode='sendTo';renderSph();loadSphAccounts();};
+    return;
+  }
+  const accts=sphUi.accts,anyTo=()=>Object.keys(sphUi.toPick).some(k=>sphUi.toPick[k]);
+  const body=sphUi.acctErr?`<p class="small">${escapeHtml(sphUi.acctErr)}</p><div class="actions"><button class="secondary" id="sphRetry">Try again</button></div>`
+    :!accts?'<p class="small">Loading accounts…</p>'
+    :!accts.length?`<div class="empty">${ic('note','lg')}<p>There are no other accounts yet.</p></div>`
+    :`<div class="sphpick">${accts.map(a=>`<label class="pickrow"><input type="checkbox" data-to="${escapeHtml(a.name)}" ${sphUi.toPick[a.name]?'checked':''}><span><b>${escapeHtml(a.display||a.name)}</b></span></label>`).join('')}</div>`;
+  box.innerHTML=`<div class="panel"><div class="vhead"><div><h2>Send to</h2><p class="small">Step 2 of 2: choose who gets it. You can pick more than one.</p></div>
+    <button class="ghost" id="sphCancel">Cancel</button></div>${body}
+    <div class="actions"><button class="ghost" id="sphBackPick">Back</button><button class="primary" id="sphSend" ${anyTo()?'':'disabled'}>${ic('send')} Send</button></div>
+    <p class="small" id="sphErr" hidden></p></div>`;
+  $('sphCancel').onclick=sphGoHome;
+  $('sphBackPick').onclick=()=>{sphUi.mode='sendPick';renderSph();};
+  if($('sphRetry'))$('sphRetry').onclick=()=>{sphUi.acctErr='';sphUi.accts=null;renderSph();loadSphAccounts();};
+  box.querySelectorAll('[data-to]').forEach(c=>c.onchange=()=>{sphUi.toPick[c.dataset.to]=c.checked;$('sphSend').disabled=!anyTo();});
+  $('sphSend').onclick=async()=>{
+    const to=Object.keys(sphUi.toPick).filter(k=>sphUi.toPick[k]),chosen=sets.filter(s=>sphUi.pick[s.id]),err=$('sphErr'),btn=$('sphSend');
+    if(!to.length||!chosen.length||sphUi.sending)return;
+    const show=m=>{err.textContent=m;err.hidden=!m;};
+    if(chosen.some(s=>s.words.length>500))return show('A homework can have up to 500 words.');
+    sphUi.sending=true;btn.disabled=true;btn.textContent='Sending…';show('');
+    try{await rpc('send_homework',{p_token:ACCT.token,p_to:to,p_sets:chosen.map(s=>({title:s.title,words:s.words.map(w=>({vi:w.vi,tr:w.tr||''}))}))});
+      sphUi.sending=false;sphUi.mode='home';sphNotice(`Sent ${chosen.length} homework to ${plural(to.length,'person').replace('persons','people')}.`);}
+    catch(e){sphUi.sending=false;if(e.code==='bad_session')return cloudFail(e);btn.disabled=false;btn.innerHTML=`${ic('send')} Send`;show(sphErrMsg(e));}
+  };
+}
+function renderSphInbox(box){
+  const items=sphInbox.items,plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+  if(sphUi.mode==='inboxItem'){
+    const it=items.find(i=>i.id===sphUi.inboxId);
+    if(!it){sphUi.mode='inbox';return renderSphInbox(box);}
+    const words=cleanSphWords(it.words);
+    box.innerHTML=`<div class="panel"><div class="vhead"><div><h2>${escapeHtml(it.title)}</h2><p class="small">From ${escapeHtml(it.from)} · ${plural(words.length,'word')}. Look through it, then accept or decline.</p></div>
+      <button class="ghost" id="sphBack">Back</button></div>
+      <div class="wordlist">${words.map(w=>`<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.tr||'No translation')}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`).join('')}</div>
+      <div class="actions"><button class="primary" id="sphAccept">${ic('check')} Accept</button><button class="danger" id="sphDecline">Decline</button></div>
+      <p class="small" id="sphErr" hidden></p></div>`;
+    $('sphBack').onclick=()=>{sphUi.mode='inbox';renderSph();};
+    const answer=async accept=>{
+      if(sphInbox.answering)return;sphInbox.answering=true;
+      const ok=$('sphAccept'),no=$('sphDecline'),err=$('sphErr');ok.disabled=no.disabled=true;err.hidden=true;
+      try{const r=await rpc('answer_homework',{p_token:ACCT.token,p_id:it.id,p_accept:accept});
+        sphInbox.items=sphInbox.items.filter(i=>i.id!==it.id);updateSphBadge();
+        if(accept){
+          const src=r&&Array.isArray(r.words)?r:it,ws=cleanSphWords(src.words),title=String(src.title||it.title).slice(0,120),now=Date.now();
+          sph.sets.push({id:newSphId(),title,createdAt:now,updatedAt:now,words:ws,from:String(it.from||'')});persistSph();
+          sphInbox.answering=false;sphUi.mode='home';sphNotice(`Added "${title}" to your homework.`);
+        }else{sphInbox.answering=false;sphUi.mode='inbox';renderSph();}
+      }catch(e){sphInbox.answering=false;if(e.code==='bad_session')return cloudFail(e);
+        ok.disabled=no.disabled=false;err.textContent=e.code==='bad_data'?'This homework was already answered. Refreshing…':sphErrMsg(e);err.hidden=false;
+        if(e.code==='bad_data')pullSphInbox();}
+    };
+    $('sphAccept').onclick=()=>answer(true);$('sphDecline').onclick=()=>answer(false);
+    return;
+  }
+  box.innerHTML=`<div class="panel"><div class="vhead"><div><h2>Received homework</h2><p class="small">Homework other people sent you. Open one to look at it before you accept.</p></div>
+    <button class="ghost" id="sphBack">Back</button></div>
+    ${sphInbox.err?`<p class="small">${escapeHtml(sphInbox.err)}</p>`:''}
+    ${!sphInbox.loaded?'<p class="small">Loading…</p>'
+      :items.length?`<div class="sphpick">${items.map(i=>`<button type="button" class="pickrow" data-inbox="${escapeHtml(i.id)}">${ic('mail')}<span><b>${escapeHtml(i.title)}</b><small>From ${escapeHtml(i.from)} · ${plural(cleanSphWords(i.words).length,'word')} · ${new Date(i.at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</small></span></button>`).join('')}</div>`
+      :sphInbox.err?'':`<div class="empty">${ic('mail','lg')}<p>No homework waiting for you.</p></div>`}</div>`;
+  $('sphBack').onclick=sphGoHome;
+  box.querySelectorAll('[data-inbox]').forEach(b=>b.onclick=()=>{sphUi.inboxId=b.dataset.inbox;sphUi.mode='inboxItem';renderSph();window.scrollTo({top:0});});
+}
+if(canShare()){
+  setTimeout(pullSphInbox,2500);
+  setInterval(()=>{if(document.visibilityState==='visible')pullSphInbox();},60000);
+  addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')pullSphInbox();});
 }
 
 // ---------- Settings ----------
