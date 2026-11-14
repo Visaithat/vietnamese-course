@@ -161,14 +161,15 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px}
   .stat{flex-direction:column;gap:1px;padding:8px 4px;justify-content:center;text-align:center;border-radius:14px}.stat strong{font-size:1rem}.stat span{font-size:.66rem}
   .stat.wide{min-width:0}.stat.wide .progress{display:none}
-  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;width:auto;max-width:none;display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-radius:0;padding:6px 4px calc(6px + env(safe-area-inset-bottom));background:var(--bar);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);overflow:visible}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;width:auto;max-width:none;display:grid;grid-template-columns:repeat(6,1fr);gap:0;border-radius:0;padding:6px 4px calc(6px + env(safe-area-inset-bottom));background:var(--bar);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);overflow:visible}
   .tab{flex-direction:column;gap:3px;padding:6px 0;font-size:.66rem;background:none!important;box-shadow:none!important;color:var(--muted2)}.tab.active{color:var(--accent)}.tab .ic{width:24px;height:24px}
   .tab .badge{position:absolute;top:1px;left:calc(50% + 5px)}.tab-help{display:none}
   .panel{padding:16px;border-radius:20px}.daycard{padding:20px}
   .stage{padding:20px 16px;border-radius:22px}
   .choices,.wordlist{grid-template-columns:1fr}
   .daygrid{gap:6px}.daytile{min-height:0;aspect-ratio:1;padding:0;align-items:center;justify-content:center;border-radius:12px}.daytile .tt,.daytile .sc{display:none}.daytile .st{top:3px;right:3px}.daytile .st .ic{width:12px;height:12px}
-  .ans,select,input{font-size:16px}.ans{font-size:1.15rem}
+  .ans,select,input,textarea{font-size:16px}.ans{font-size:1.15rem}
+  .sphpaste,.sphmethods{grid-template-columns:1fr}
   .actions>.primary,.actions>.success,.actions>.danger,.actions>.secondary{flex:1 1 auto;min-height:50px}
   .setrow>label{min-width:0}
   .tile{padding:12px;gap:10px}.tile .tic{width:38px;height:38px}
@@ -181,6 +182,19 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
 .choices.one{grid-template-columns:1fr}
 .stagehead{margin:28px 0 4px;padding:10px 14px;border-radius:14px;background:var(--soft);color:var(--softink);font-weight:700;display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}.stagehead:first-child{margin-top:0}.stagehead small{font-weight:500;opacity:.85}
 .daytile.soon{opacity:.5}
+/* SPH homework notebook */
+.sphgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sphtile{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:2px;background:var(--surface);border:2px solid transparent;border-radius:14px;padding:12px;min-height:96px;text-align:left;position:relative;width:100%}
+.sphtile b{font-size:1.05rem}.sphtile .tt{font-size:.82rem;color:var(--ink);font-weight:600;line-height:1.25;padding-right:18px;overflow-wrap:anywhere}.sphtile .nw{font-size:.74rem;color:var(--muted);font-weight:500}
+.sphtile .sc{font-size:.74rem;color:var(--goodink);font-weight:700;margin-top:auto}.sphtile .st{position:absolute;top:10px;right:10px;color:var(--muted2);display:flex}
+.sphtile.done{background:var(--good)}.sphtile.done .st{color:var(--accent)}.sphtile.active{border-color:var(--accent);background:var(--card)}
+.sphtile.new{border:2px dashed var(--line);background:transparent;color:var(--muted);align-items:center;justify-content:center;gap:6px}.sphtile.new .ic{width:26px;height:26px;color:var(--accent)}
+.sphmethods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
+.sphmethods .tile{width:100%}
+.sphpaste{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 8px}
+.sphpaste textarea{width:100%;min-height:220px;font:inherit;line-height:1.55;padding:12px;border:2px solid transparent;border-radius:14px;background:var(--surface);color:var(--ink);resize:vertical}
+.sphpaste textarea:focus{border-color:var(--accent);outline:none;background:var(--card)}
+.wi.sph-set{width:100%;justify-content:space-between;text-align:left}
 </style>
 </head>
 <body>
@@ -221,6 +235,7 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
 <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5l1.8 5.2 5.2 1.8-5.2 1.8L12 17.5l-1.8-5.2L5 10.5l5.2-1.8z"/><path d="M18.5 16v4M16.5 18h4"/></symbol>
 <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5.5h16v10.5H10l-5 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
 <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
+<symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3.5h9.5L20.5 8v12.5A1.5 1.5 0 0 1 19 22H6a1.5 1.5 0 0 1-1.5-1.5v-17A1.5 1.5 0 0 1 6 3.5z"/><path d="M15 3.5V9h5.5M8 13h8M8 17h5"/></symbol>
 <symbol id="i-order" viewBox="0 0 24 24"><rect x="3.5" y="5" width="7" height="5" rx="1.5"/><rect x="13.5" y="5" width="7" height="5" rx="1.5"/><rect x="3.5" y="14" width="17" height="5" rx="1.5"/></symbol>
 </defs></svg>
 <div class="auth" id="auth">
@@ -258,6 +273,7 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
     <button class="tab" data-view="map"><svg class="ic"><use href="#i-map"/></svg><span>Map</span></button>
     <button class="tab" data-view="forgot"><svg class="ic"><use href="#i-forgot"/></svg><span>Forgotten</span><span class="badge" id="forgotBadge" hidden>0</span></button>
     <button class="tab" data-view="words"><svg class="ic"><use href="#i-book"/></svg><span>Words</span></button>
+    <button class="tab" data-view="sph"><svg class="ic"><use href="#i-note"/></svg><span>SPH</span></button>
     <button class="tab" data-view="settings"><svg class="ic"><use href="#i-sliders"/></svg><span>Settings</span></button>
     <button class="tab tab-help" data-view="help"><svg class="ic"><use href="#i-keyboard"/></svg><span>Typing</span></button>
   </nav>
@@ -267,6 +283,7 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
   <section class="view" id="view-map"><div class="panel"><div class="vhead"><h2>Course map</h2><span class="small legend"><span><svg class="ic sm"><use href="#i-check"/></svg>done</span><span><svg class="ic sm"><use href="#i-star"/></svg>checkpoint</span></span></div><div id="mapGrid"></div></div><div id="mapDetail"></div></section>
   <section class="view" id="view-forgot"><div class="panel" id="forgotPanel"></div></section>
   <section class="view" id="view-words"><div class="panel"><div class="toolbar"><input type="search" id="wordSearch" placeholder="Search Vietnamese or English"><label class="small swl"><input type="checkbox" class="switch" id="showAll"> All days</label></div><div class="wordlist" id="wordList"></div></div></section>
+  <section class="view" id="view-sph"><div id="sph"></div></section>
   <section class="view" id="view-settings">
     <div class="group"><div class="gtitle">Sound</div>
       <div class="setrow"><label>Voice<span class="sub" id="voiceStatus"></span></label><button class="secondary" id="testVoice"><svg class="ic sm"><use href="#i-speaker"/></svg>Test</button></div>
@@ -16503,7 +16520,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 // Icons come from the SVG sprite at the top of the page
 const ic=(name,cls='')=>`<svg class="ic ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const verdict=(kind,text)=>`<div class="verdict ${kind}"><span class="vic">${ic(kind==='ok'?'check':kind==='tone'?'alert':'x')}</span>${text}</div>`;
-const SEC_ICON={'Review':'retry','Checkpoint test':'star','Grammar':'bulb','Reading':'book','Dialogue':'headphones','Learn':'sparkle','Spelling':'keyboard','Sentences':'chat','Your own sentence':'pencil','Word order':'order','Listening':'headphones'};
+const SEC_ICON={'Review':'retry','Checkpoint test':'star','Grammar':'bulb','Reading':'book','Dialogue':'headphones','Learn':'sparkle','Spelling':'keyboard','Sentences':'chat','Your own sentence':'pencil','Word order':'order','Listening':'headphones','Meaning':'chat'};
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 // ---------- Course data ----------
@@ -16523,26 +16540,42 @@ const today=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5
 let progress=Object.assign({done:{},streak:0,last:null},store.get('vdc_progress',{}));
 let srs=store.get('vdc_srs',{});       // word id -> {box, due, right, wrong}
 let forgot=store.get('vdc_forgot',{}); // word id -> {miss, fix, last}
+let sph=Object.assign({sets:[]},store.get('vdc_sph',{}));
+if(!Array.isArray(sph.sets))sph.sets=[];
+let SPH_WORDS={};
+function rebuildSphWords(){SPH_WORDS={};(sph.sets||[]).forEach(set=>{if(set.deleted)return;(set.words||[]).forEach((w,i)=>{SPH_WORDS['sph-'+set.id+'-'+i]={id:'sph-'+set.id+'-'+i,vi:w.vi,en:w.tr||'',setId:set.id};});});}
+rebuildSphWords();
+const wordOf=id=>WORDS[id]||SPH_WORDS[id];
 const settings=Object.assign({source:'auto',speed:'normal',telex:true,autoplay:true},store.get('vdc_settings',{}));
 let session=store.get('vdc_session',null);
 let pausedSession=null, bindDashboard=()=>{};
-if(session&&!(session.steps||[]).every(s=>!s.id||WORDS[s.id]))session=null;
-function save(o={}){store.set('vdc_progress',progress);store.set('vdc_srs',srs);store.set('vdc_forgot',forgot);store.set('vdc_settings',settings);store.set('vdc_session',session||pausedSession);store.set('vdc_savedAt',o.at||Date.now());saveStatus();if(!o.quiet)scheduleCloudWrite();}
+const sphUi={mode:'home',setId:null,method:null,draft:null,editI:-1,armDelete:false};
+function validSession(x){return x&&(x.steps||[]).every(s=>!s.id||wordOf(s.id))?x:null;}
+if(!validSession(session))session=null;
+function save(o={}){store.set('vdc_progress',progress);store.set('vdc_srs',srs);store.set('vdc_forgot',forgot);store.set('vdc_settings',settings);store.set('vdc_sph',sph);store.set('vdc_session',session||pausedSession);store.set('vdc_savedAt',o.at||Date.now());saveStatus();if(!o.quiet)scheduleCloudWrite();}
 
 // ---------- Accounts: progress kept in the online database (Supabase), merged with this browser ----------
 const SB_URL='https://ucnuozssxpumvmijrrmg.supabase.co', SB_KEY='sb_publishable_We2SZ5R3OSY_NGMqvzQHJQ_hWQrT7Ir'; // public "anon" key: it can only call the account functions, never read tables
 const hosted=!!(window.claude&&typeof window.claude.use==='function'); // opened on claude.ai
 const hhmm=t=>new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-function snapshot(){return {app:'vietnamese-daily-course',v:1,savedAt:store.get('vdc_savedAt',0),progress,srs,forgot,settings,session:session||pausedSession};}
-const validSession=x=>x&&(x.steps||[]).every(s=>!s.id||WORDS[s.id])?x:null;
+function snapshot(){return {app:'vietnamese-daily-course',v:1,savedAt:store.get('vdc_savedAt',0),progress,srs,forgot,settings,session:session||pausedSession,sph};}
+function mergeSph(a,b){
+  const map={};
+  for(const s of [...((a&&a.sets)||[]),...((b&&b.sets)||[])]){
+    const prev=map[s.id];if(!prev||(s.updatedAt||s.createdAt||0)>=(prev.updatedAt||prev.createdAt||0))map[s.id]=s;
+  }
+  return {sets:Object.values(map).sort((x,y)=>(x.createdAt||0)-(y.createdAt||0))};
+}
 // fromSync: data that came from the other device; keep its time and keep a lesson that is running here
 function applySnapshot(d,o={}){if(!d||d.app!=='vietnamese-daily-course')throw new Error('not a progress file');
   progress=Object.assign({done:{},streak:0,last:null},d.progress);srs=d.srs||{};forgot=d.forgot||{};Object.assign(settings,d.settings||{});
+  sph=mergeSph(sph,d.sph||{sets:[]});rebuildSphWords();
   const busy=o.fromSync&&session;if(!busy){session=null;pausedSession=validSession(d.session);}
-  save(o.fromSync?{at:d.savedAt,quiet:true}:{});syncSettingsUI();applyTheme();if(busy)updateStats();else renderToday();}
-const hasProgress=()=>Object.keys(srs).length>0||Object.keys(progress.done).length>0;
+  save(o.fromSync?{at:d.savedAt,quiet:true}:{});syncSettingsUI();applyTheme();
+  if(busy)updateStats();else if(document.querySelector('#view-sph.active'))renderSph();else renderToday();}
+const hasProgress=()=>Object.keys(srs).length>0||Object.keys(progress.done).length>0||(sph.sets||[]).some(s=>!s.deleted);
 const canonical=v=>v&&typeof v==='object'?Array.isArray(v)?'['+v.map(canonical).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v===undefined?null:v);
-const dataKey=d=>canonical({progress:d.progress,srs:d.srs,forgot:d.forgot,session:d.session||null});
+const dataKey=d=>canonical({progress:d.progress,srs:d.srs,forgot:d.forgot,session:d.session||null,sph:d.sph||null});
 // Combine two copies so work done on either device is kept: every finished day, and for each word the copy that saw more practice
 function mergeSnaps(a,b){
   const newer=(b.savedAt||0)>(a.savedAt||0)?b:a,pa=a.progress||{},pb=b.progress||{};
@@ -16553,7 +16586,7 @@ function mergeSnaps(a,b){
   for(const k of new Set([...Object.keys(sa),...Object.keys(sb)])){const x=sa[k],y=sb[k];
     const useB=!x||(y&&(y.right+y.wrong>x.right+x.wrong||(y.right+y.wrong===x.right+x.wrong&&y.due>x.due)));srsM[k]=useB?y:x;from[k]=useB?b:a;}
   const fg={};for(const k of new Set([...Object.keys(a.forgot||{}),...Object.keys(b.forgot||{})])){const src=from[k]||newer;if((src.forgot||{})[k])fg[k]=src.forgot[k];}
-  return {app:'vietnamese-daily-course',v:1,savedAt:Math.max(a.savedAt||0,b.savedAt||0),progress:{done,streak,last:last<0?null:last},srs:srsM,forgot:fg,settings:newer.settings||{},session:newer.session||null};
+  return {app:'vietnamese-daily-course',v:1,savedAt:Math.max(a.savedAt||0,b.savedAt||0),progress:{done,streak,last:last<0?null:last},srs:srsM,forgot:fg,settings:newer.settings||{},session:newer.session||null,sph:mergeSph(a.sph,b.sph)};
 }
 // One call to a database function (see supabase_setup.sql)
 async function rpc(fn,args){let r;
@@ -16752,7 +16785,7 @@ function replaceWordBefore(input,fn){
   const start=pos-w.length;input.value=v.slice(0,start)+r+v.slice(pos);const np=start+r.length;input.setSelectionRange(np,np);return true;
 }
 document.addEventListener('input',e=>{
-  const el=e.target;if(!settings.telex||!el.classList||!el.classList.contains('ans'))return;
+  const el=e.target;if(!settings.telex||!el.classList||!(el.classList.contains('ans')||el.dataset.telex==='1'))return;
   if(e.inputType!=='insertText'||!e.data||e.data.length!==1||!/[a-z]/i.test(e.data))return;
   const pos=el.selectionStart,v=el.value;if(pos<1||v[pos-1]!==e.data)return;
   const before=v.slice(0,pos-1),m=before.match(/[\p{L}]+$/u),w=m?m[0]:'';
@@ -16823,7 +16856,7 @@ const isPattern=w=>/\.\.\.|…/.test(w.vi);
 function pickMode(id){const w=WORDS[id],b=(srs[id]||{}).box||1;if(isPattern(w))return 'meaning';const m=b<=1?['meaning','listen','recall']:['recall','listen','meaning','recall'];return m[Math.floor(Math.random()*m.length)];}
 
 // ---------- Building sessions ----------
-const SEC_ORDER=['Review','Checkpoint test','Grammar','Learn','Spelling','Sentences','Reading','Your own sentence','Word order','Dialogue','Listening'];
+const SEC_ORDER=['Review','Checkpoint test','Grammar','Learn','Spelling','Sentences','Reading','Your own sentence','Word order','Dialogue','Listening','Meaning'];
 function buildLesson(n){
   const d=dayMap[n],steps=[{t:'intro',sec:'Start'}];
   const due=dueIds(n).slice(0,n>70?30:20); // more new words a day from day 71, so more reviews fit
@@ -16866,7 +16899,9 @@ function renderToday(){
   const st=session.steps[session.i];
   const head=`<div class="lessonbar"><button class="iconbtn" id="quitBtn" title="Pause">${ic('pause')}</button><div class="progress"><div style="width:${session.i/(session.steps.length-1)*100}%"></div></div><span class="count">${session.i+1}/${session.steps.length}</span></div>`;
   box.innerHTML=head+`<div class="stage" id="stage"></div>`;
-  $('quitBtn').onclick=()=>{pausedSession=session;session=null;save();renderToday();};
+  $('quitBtn').onclick=()=>{pausedSession=session;session=null;save();
+    if(pausedSession&&pausedSession.kind==='sph'){sphUi.mode='set';sphUi.setId=pausedSession.setId;showView('sph');}
+    else renderToday();};
   (RENDER[st.t]||RENDER.summary)(st,$('stage'));
   const inp=$('ans');if(inp&&!('ontouchstart'in window))inp.focus();
 }
@@ -16927,7 +16962,7 @@ function checkFlow(stage,answers,{onResult,showAnswer=true,extraAfter=''}={}){
   $('skipBtn').onclick=go;
 }
 const nextBtn=(label='Next')=>`<button class="primary" id="nextBtn" hidden>${label} ${ic('arrow')}</button>`;
-const stepButtons=(check='Check')=>`${hintArea}<div class="fb"></div><div class="actions"><button class="primary" id="checkBtn">${check}</button><button class="iconbtn" id="hintBtn" title="Hint">${ic('bulb')}</button><button class="ghost" id="skipBtn">Skip</button>${nextBtn()}</div>`;
+const stepButtons=(check='Check',hints=true)=>`${hints?hintArea:''}<div class="fb"></div><div class="actions"><button class="primary" id="checkBtn">${check}</button>${hints?`<button class="iconbtn" id="hintBtn" title="Hint">${ic('bulb')}</button>`:''}<button class="ghost" id="skipBtn">Skip</button>${nextBtn()}</div>`;
 const exampleBox=w=>`<div class="exbox"><div class="vi">${escapeHtml(w.ex)} ${sayBtns(w.ex)}</div><div class="en">${escapeHtml(w.exEn)}</div></div>`;
 const RENDER={
   intro(st,el){const d=dayMap[session.day],counts={};session.steps.forEach(s=>{counts[s.sec]=(counts[s.sec]||0)+1;});
@@ -16963,12 +16998,12 @@ const RENDER={
       <div class="actions"><button class="primary" id="nextBtn">Got it ${ic('arrow')}</button></div>`;
     autoSay(w.vi);$('nextBtn').onclick=next;$('nextBtn').focus();},
 
-  spell(st,el){const w=WORDS[st.id];
-    const q=st.mode==='audio'?`${bigPlay(w.vi)}<div class="prompt">Spell the word you hear</div>`:`<div class="prompt">${escapeHtml(w.en)}</div><div class="small" style="margin:-8px 0 12px">Spell it in Vietnamese</div>`;
-    el.innerHTML=`<div class="kind">Spelling${tryTag()}</div>${q}${answerArea('Type it with tone marks…')}${stepButtons()}`;
+  spell(st,el){const w=wordOf(st.id);
+    const q=st.mode==='audio'?`${bigPlay(w.vi)}<div class="prompt">${st.noHints?'Type the word you hear':'Spell the word you hear'}</div>`:`<div class="prompt">${escapeHtml(w.en)}</div><div class="small" style="margin:-8px 0 12px">${st.noHints?'Write it in Vietnamese':'Spell it in Vietnamese'}</div>`;
+    el.innerHTML=`<div class="kind">${st.noHints?(st.mode==='audio'?'Listening':'Meaning'):'Spelling'}${tryTag()}</div>${q}${answerArea('Type it with tone marks…')}${stepButtons('Check',!st.noHints)}`;
     if(st.mode==='audio')autoSay(w.vi);
-    setupHints(wordHints(w,st.mode));
-    checkFlow(el,[w.vi],{onResult:g=>record(g.ok),extraAfter:`<div class="small" style="margin-top:6px">${escapeHtml(w.vi)} · ${escapeHtml(w.en)}</div>`});},
+    if(!st.noHints)setupHints(wordHints(w,st.mode));
+    checkFlow(el,[w.vi],{onResult:g=>record(g.ok),extraAfter:`<div class="small" style="margin-top:6px">${escapeHtml(w.vi)}${w.en?` · ${escapeHtml(w.en)}`:''}</div>`});},
 
   make(st,el){const w=WORDS[st.id],target=w.make.vi[0];
     el.innerHTML=`<div class="kind">Sentences${tryTag()}</div><div class="wordline">${escapeHtml(w.vi)} <span class="muted">· ${escapeHtml(w.en)}</span></div>
@@ -17092,15 +17127,16 @@ const RENDER={
     const hinted=r.filter(x=>x.ok&&x.hints).length,fixed=r.filter(x=>!x.ok&&x.retryOk).length;
     const missed=[...new Set(session.results.filter(x=>!x.ok&&x.id).map(x=>x.id))];
     const bySec={};r.forEach(x=>{const s=bySec[x.sec]=bySec[x.sec]||[0,0];s[1]++;if(x.ok)s[0]++;});
-    const isLesson=session.kind==='lesson',nd=nextDay();
+    const isLesson=session.kind==='lesson',isSph=session.kind==='sph',nd=nextDay();
     const C=2*Math.PI*52;
-    el.innerHTML=`<div class="kind">${isLesson?`Day ${session.day} complete`:'Review complete'}</div>
+    el.innerHTML=`<div class="kind">${isLesson?`Day ${session.day} complete`:isSph?'Homework complete':'Review complete'}</div>
       <div class="score"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52" stroke-dasharray="${(pct/100*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/></svg><b>${pct}%</b></div>
       <p class="meaning">${ok} of ${r.length} correct on the first try${hinted?` (${hinted} with hints)`:''}.${fixed?` ${fixed} more fixed with Try again.`:''}</p>
-      <div class="secrows">${SEC_ORDER.filter(s=>bySec[s]).map(s=>`<div class="secrow">${ic(SEC_ICON[s],'sm')}<span>${s}</span><b>${bySec[s][0]}/${bySec[s][1]}</b></div>`).join('')}</div>
-      ${missed.length?`<div class="label">Words to watch</div><div class="wordlist">${missed.map(id=>{const w=WORDS[id];return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}).join('')}</div>`:''}
-      <div class="actions"><button class="primary" id="doneBtn">${isLesson&&nd?'Back to Today':'Done'}</button></div>`;
-    $('doneBtn').onclick=()=>{session=null;pausedSession=null;save();renderToday();};$('doneBtn').focus();}
+      <div class="secrows">${SEC_ORDER.filter(s=>bySec[s]).map(s=>`<div class="secrow">${ic(SEC_ICON[s]||'note','sm')}<span>${s}</span><b>${bySec[s][0]}/${bySec[s][1]}</b></div>`).join('')}</div>
+      ${missed.length?`<div class="label">Words to watch</div><div class="wordlist">${missed.map(id=>{const w=wordOf(id);if(!w)return '';return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en||'No translation')}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}).join('')}</div>`:''}
+      <div class="actions"><button class="primary" id="doneBtn">${isSph?'Back to SPH':isLesson&&nd?'Back to Today':'Done'}</button></div>`;
+    $('doneBtn').onclick=()=>{const setId=isSph?session.setId:null;session=null;if(!isSph)pausedSession=null;save();
+      if(setId){sphUi.mode='set';sphUi.setId=setId;showView('sph');}else renderToday();};$('doneBtn').focus();}
 };
 function finishSession(){
   if(session.kind==='lesson'){const n=session.day,t=today();
@@ -17108,6 +17144,10 @@ function finishSession(){
     const r=session.results.filter(x=>!x.retry),score=r.length?Math.round(r.filter(x=>x.ok).length/r.length*100):100;
     const prev=progress.done[n];progress.done[n]={score:Math.max(score,prev?prev.score:0),date:t};
     if(progress.last!==t){progress.streak=progress.last===t-1?progress.streak+1:1;progress.last=t;}
+  }else if(session.kind==='sph'){ // remember how this homework went; it does not touch course days or the memory boxes
+    const set=sphSetById(session.setId);
+    if(set){const r=session.results.filter(x=>!x.retry),score=r.length?Math.round(r.filter(x=>x.ok).length/r.length*100):100;
+      set.best=Math.max(set.best||0,score);set.last=score;set.runs=(set.runs||0)+1;set.updatedAt=Date.now();}
   }
   save();
 }
@@ -17118,7 +17158,7 @@ function updateStats(){const done=Object.keys(progress.done).length;$('stDays').
   const live=progress.last!==null&&today()-progress.last<=1;$('stStreak').textContent=live?progress.streak:0;
   const fc=Object.keys(forgot).length;$('forgotBadge').hidden=!fc;$('forgotBadge').textContent=fc;}
 function showView(v){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
-  if(v==='map')renderMap();if(v==='words')renderWords();if(v==='forgot')renderForgot();if(v==='today')renderToday();}
+  if(v==='map')renderMap();if(v==='words')renderWords();if(v==='forgot')renderForgot();if(v==='today')renderToday();if(v==='sph')renderSph();}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showView(t.dataset.view));
 function renderMap(){const nd=nextDay();let h='';
   for(let wk=0;wk*7<TOTAL_DAYS;wk++){const first=wk*7+1,sg=STAGES.find(s=>s.from===first);
@@ -17143,6 +17183,206 @@ function renderForgot(){const ids=Object.keys(forgot).filter(id=>WORDS[id]).sort
   $('forgotPanel').innerHTML=`<div class="vhead"><div><h2>Forgotten</h2><p class="small">Get each one right twice to clear it.</p></div>${ids.length?`<button class="primary" id="fgStart">${ic('play')}Practise</button>`:''}</div>
     ${ids.length?`<div class="wordlist">${ids.map(id=>{const w=WORDS[id],f=forgot[id];return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div><div class="meta">missed ${f.miss}× · ${f.fix}/2 right since</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}).join('')}</div>`:`<div class="empty">${ic('check','lg')}<p>Nothing forgotten. Nice.</p></div>`}`;
   if($('fgStart'))$('fgStart').onclick=()=>startSession(buildReview(shuffle(ids).slice(0,25),'forgot'));}
+
+// ---------- SPH (school practice homework) ----------
+function liveSphSets(){return (sph.sets||[]).filter(s=>!s.deleted);}
+function sphSetById(id){return liveSphSets().find(s=>s.id===id);}
+function defaultSphTitle(){return 'Homework '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function newSphId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function persistSph(){rebuildSphWords();save();}
+function touchSphSet(set,extra={}){Object.assign(set,extra,{updatedAt:Date.now()});persistSph();}
+function invalidateSphSession(setId){
+  if(session&&session.kind==='sph'&&session.setId===setId)session=null;
+  if(pausedSession&&pausedSession.kind==='sph'&&pausedSession.setId===setId)pausedSession=null;
+}
+function parseSphPaste(viText,trText){
+  const vi=String(viText||'').split(/\r?\n/),tr=String(trText||'').split(/\r?\n/),words=[];
+  for(let i=0;i<vi.length;i++){const v=vi[i].trim();if(!v)continue;words.push({vi:v,tr:(tr[i]||'').trim()});}
+  return words;
+}
+function saveNewSphSet(title,words){
+  const now=Date.now(),set={id:newSphId(),title:(title||'').trim()||defaultSphTitle(),createdAt:now,updatedAt:now,words};
+  sph.sets.push(set);persistSph();
+  sphUi.mode='set';sphUi.setId=set.id;sphUi.method=null;sphUi.draft=null;sphUi.editI=-1;sphUi.armDelete=false;
+  renderSph();
+}
+function startSphPractice(set){
+  if(!set.words.length)return;
+  rebuildSphWords();
+  const steps=[];
+  shuffle(set.words.map((w,i)=>({w,i}))).forEach(({w,i})=>{
+    const id='sph-'+set.id+'-'+i;
+    steps.push({t:'spell',id,mode:'audio',sec:'Listening',noHints:true});
+    if(w.tr)steps.push({t:'spell',id,mode:'meaning',sec:'Meaning',noHints:true});
+  });
+  steps.push({t:'summary',sec:'Done'});
+  pausedSession=null;
+  startSession({kind:'sph',setId:set.id,title:set.title,steps,i:0,results:[]});
+}
+// The homework map: one tile per saved homework, like the course map
+function sphGridPanel(activeId){
+  const sets=liveSphSets();
+  const tiles=sets.map((s,k)=>{const done=s.runs>0;
+    return `<button type="button" class="sphtile ${done?'done':''} ${s.id===activeId?'active':''}" data-sph-open="${s.id}" title="${escapeHtml(s.title)}"><b>${k+1}</b><span class="tt">${escapeHtml(s.title)}</span><span class="nw">${s.words.length} word${s.words.length===1?'':'s'}</span>${done?`<span class="sc">best ${s.best||0}%</span>`:''}<span class="st">${done?ic('check','sm'):''}</span></button>`;}).join('');
+  return `<div class="panel"><div class="vhead"><div><h2>Homework map</h2><p class="small">${sets.length?'Tap a homework to open it.':'School practice homework: save the words the teacher gave you, then practise them.'}</p></div>
+    <button class="primary" id="sphNew">${ic('pencil')} New homework</button></div>
+    ${sets.length?`<div class="sphgrid">${tiles}<button type="button" class="sphtile new" id="sphNewTile">${ic('sparkle')}<span>New homework</span></button></div>`
+      :`<div class="empty">${ic('note','lg')}<p>No homework yet. Tap <b>New homework</b> and add the words from class.</p></div>`}</div>`;
+}
+function bindSphGrid(el){
+  el.querySelectorAll('[data-sph-open]').forEach(b=>b.onclick=()=>{
+    sphUi.mode='set';sphUi.setId=b.dataset.sphOpen;sphUi.method=null;sphUi.editI=-1;sphUi.armDelete=false;renderSph();
+    const d=$('sphDetail');if(d)d.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  const nw=()=>{sphUi.mode='create';sphUi.draft={title:'',words:[]};sphUi.method=null;sphUi.editI=-1;renderSph();};
+  if($('sphNew'))$('sphNew').onclick=nw;if($('sphNewTile'))$('sphNewTile').onclick=nw;
+}
+function renderSph(){
+  const box=$('sph');if(!box)return;
+  const sets=liveSphSets();
+
+  if(sphUi.mode==='create'||sphUi.mode==='one'||sphUi.mode==='many'){
+    if(sphUi.mode==='create'){
+      box.innerHTML=`<div class="panel">
+        <div class="vhead"><div><h2>New homework</h2><p class="small">Words the teacher gave you to practise.</p></div>
+          <button class="ghost" id="sphCancel">Cancel</button></div>
+        <label class="field"><span>Title</span><div class="box"><input id="sphTitle" maxlength="80" placeholder="${escapeHtml(defaultSphTitle())}" value="${escapeHtml((sphUi.draft&&sphUi.draft.title)||'')}"></div></label>
+        <div class="label">How do you want to add words?</div>
+        <div class="sphmethods">
+          <button class="tile" id="sphOne"><span class="tic">${ic('pencil')}</span><span><b>One word</b><small>Add them one at a time</small></span></button>
+          <button class="tile" id="sphMany"><span class="tic">${ic('file')}</span><span><b>Many words</b><small>Paste a list at once</small></span></button>
+        </div>
+      </div>`;
+      $('sphCancel').onclick=()=>{sphUi.mode='home';sphUi.draft=null;renderSph();};
+      const grab=()=>{sphUi.draft={title:$('sphTitle').value,words:(sphUi.draft&&sphUi.draft.words)||[]};};
+      $('sphOne').onclick=()=>{grab();sphUi.mode='one';renderSph();};
+      $('sphMany').onclick=()=>{grab();sphUi.mode='many';renderSph();};
+      $('sphTitle').focus();
+      return;
+    }
+    if(sphUi.mode==='one'){
+      if(!sphUi.draft)sphUi.draft={title:'',words:[]};
+      const n=sphUi.draft.words.length,heading=sphUi.draft.title.trim()||defaultSphTitle();
+      box.innerHTML=`<div class="panel">
+        <div class="vhead"><div><h2>${escapeHtml(heading)}</h2><p class="small">${n} word${n===1?'':'s'} added</p></div>
+          <button class="ghost" id="sphCancel">Cancel</button></div>
+        ${n?`<div class="wordlist" style="margin-bottom:14px">${sphUi.draft.words.map(w=>`<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.tr||'No translation')}</div></div></div>`).join('')}</div>`:''}
+        <label class="field"><span>Vietnamese</span><div class="box"><input id="sphVi" maxlength="120" placeholder="e.g. xin chào" data-telex="1"></div></label>
+        <label class="field"><span>Translation <span class="muted">(optional)</span></span><div class="box"><input id="sphTr" maxlength="200" placeholder="Any language"></div></label>
+        <div class="actions"><button class="primary" id="sphAdd">${ic('check')} Add word</button>
+          <button class="secondary" id="sphFinish">${ic('disk')} Finish</button></div>
+        <p class="small" id="sphErr" hidden></p>
+      </div>`;
+      const err=m=>{const e=$('sphErr');e.textContent=m;e.hidden=!m;};
+      const take=()=>{const vi=$('sphVi').value.trim(),tr=$('sphTr').value.trim();if(!vi)return false;sphUi.draft.words.push({vi,tr});$('sphVi').value='';$('sphTr').value='';return true;};
+      $('sphAdd').onclick=()=>{if(!take()){err('Type the Vietnamese word first.');$('sphVi').focus();return;}err('');renderSph();requestAnimationFrame(()=>$('sphVi')&&$('sphVi').focus());};
+      $('sphFinish').onclick=()=>{take();if(!sphUi.draft.words.length){err('Add at least one word.');return;}saveNewSphSet(sphUi.draft.title,sphUi.draft.words);};
+      $('sphCancel').onclick=()=>{sphUi.mode='home';sphUi.draft=null;renderSph();};
+      $('sphVi').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sphAdd').click();}});
+      $('sphTr').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sphAdd').click();}});
+      $('sphVi').focus();
+      return;
+    }
+    if(!sphUi.draft)sphUi.draft={title:'',words:[]};
+    box.innerHTML=`<div class="panel">
+      <div class="vhead"><div><h2>Many words at once</h2><p class="small">One word or phrase per line. Matching lines are translations — leave a line empty to skip the meaning.</p></div>
+        <button class="ghost" id="sphCancel">Cancel</button></div>
+      <label class="field"><span>Title</span><div class="box"><input id="sphTitle" maxlength="80" placeholder="${escapeHtml(defaultSphTitle())}" value="${escapeHtml(sphUi.draft.title)}"></div></label>
+      <div class="sphpaste">
+        <label class="field"><span>Vietnamese</span><textarea id="sphViCol" placeholder="xin chào&#10;cảm ơn&#10;tạm biệt" data-telex="1"></textarea></label>
+        <label class="field"><span>Translation (optional)</span><textarea id="sphTrCol" placeholder="hello&#10;&#10;goodbye"></textarea></label>
+      </div>
+      <div class="actions"><button class="primary" id="sphSave">${ic('disk')} Save</button>
+        <button class="ghost" id="sphCancel2">Cancel</button></div>
+      <p class="small" id="sphErr" hidden></p>
+    </div>`;
+    const back=()=>{sphUi.mode='home';sphUi.draft=null;renderSph();};
+    $('sphCancel').onclick=$('sphCancel2').onclick=back;
+    $('sphSave').onclick=()=>{
+      const words=parseSphPaste($('sphViCol').value,$('sphTrCol').value),err=$('sphErr');
+      if(!words.length){err.textContent='Paste at least one Vietnamese word.';err.hidden=false;return;}
+      saveNewSphSet($('sphTitle').value,words);
+    };
+    $('sphViCol').focus();
+    return;
+  }
+
+  if(sphUi.mode==='set'&&sphSetById(sphUi.setId)){
+    const set=sphSetById(sphUi.setId);
+    const pausedSph=pausedSession&&pausedSession.kind==='sph'&&pausedSession.setId===set.id;
+    const addForm=sphUi.method==='add';
+    box.innerHTML=`${sphGridPanel(set.id)}<div class="panel" id="sphDetail" style="margin-top:12px">
+      <div class="vhead"><div>
+        ${sphUi.method==='rename'
+          ? `<label class="field" style="margin:0"><span>Title</span><div class="box"><input id="sphRename" maxlength="80" value="${escapeHtml(set.title)}"></div></label>`
+          : `<h2>${escapeHtml(set.title)}</h2><p class="small">${set.words.length} word${set.words.length===1?'':'s'}</p>`}
+      </div>
+        <div class="actions" style="margin:0">${sphUi.method==='rename'
+          ? `<button class="primary" id="sphRenameOk">Save</button><button class="ghost" id="sphRenameNo">Cancel</button>`
+          : `<button class="ghost" id="sphRenameBtn">${ic('pencil')} Rename</button>`}</div>
+      </div>
+      ${set.words.length?`<div class="wordlist">${set.words.map((w,i)=>sphUi.editI===i
+        ? `<div class="wi sph-edit"><div style="flex:1;min-width:0">
+            <label class="field"><span>Vietnamese</span><div class="box"><input id="sphEditVi" maxlength="120" value="${escapeHtml(w.vi)}" data-telex="1"></div></label>
+            <label class="field" style="margin:0"><span>Translation</span><div class="box"><input id="sphEditTr" maxlength="200" value="${escapeHtml(w.tr||'')}"></div></label>
+            <div class="actions" style="margin-top:8px"><button class="primary" id="sphEditOk">Save</button><button class="ghost" id="sphEditNo">Cancel</button></div>
+          </div></div>`
+        : `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.tr||'No translation')}</div></div>
+            <div class="btns"><button type="button" class="iconbtn" data-sph-ed="${i}" title="Edit">${ic('pencil')}</button>
+              <button type="button" class="iconbtn" data-sph-del="${i}" title="Delete">${ic('x')}</button>
+              ${sayBtns(w.vi)}</div></div>`
+      ).join('')}</div>`:`<div class="empty">${ic('note','lg')}<p>No words in this homework yet.</p></div>`}
+      ${addForm?`<div style="margin-top:16px">
+        <label class="field"><span>Vietnamese</span><div class="box"><input id="sphVi" maxlength="120" placeholder="e.g. xin chào" data-telex="1"></div></label>
+        <label class="field"><span>Translation <span class="muted">(optional)</span></span><div class="box"><input id="sphTr" maxlength="200" placeholder="Any language"></div></label>
+        <div class="actions"><button class="primary" id="sphAdd">${ic('check')} Add word</button>
+          <button class="ghost" id="sphAddDone">Done</button></div>
+        <p class="small" id="sphErr" hidden></p>
+      </div>`:''}
+      <div class="actions">
+        ${pausedSph?`<button class="primary" id="sphCont">${ic('play')} Continue</button>`:''}
+        <button class="primary" id="sphGo" ${set.words.length?'':'disabled'}>${ic('play')} Practice</button>
+        ${addForm?'':`<button class="secondary" id="sphAddBtn">${ic('pencil')} Add words</button>`}
+        <button class="danger" id="sphDelSet">${sphUi.armDelete?'Tap again to delete':'Delete homework'}</button>
+      </div>
+    </div>`;
+    bindSphGrid(box);
+    if($('sphRenameBtn'))$('sphRenameBtn').onclick=()=>{sphUi.method='rename';sphUi.editI=-1;renderSph();};
+    if($('sphRenameOk'))$('sphRenameOk').onclick=()=>{const t=$('sphRename').value.trim()||defaultSphTitle();touchSphSet(set,{title:t});sphUi.method=null;renderSph();};
+    if($('sphRenameNo'))$('sphRenameNo').onclick=()=>{sphUi.method=null;renderSph();};
+    box.querySelectorAll('[data-sph-ed]').forEach(b=>b.onclick=()=>{sphUi.editI=+b.dataset.sphEd;sphUi.method=null;renderSph();});
+    box.querySelectorAll('[data-sph-del]').forEach(b=>b.onclick=()=>{
+      set.words.splice(+b.dataset.sphDel,1);invalidateSphSession(set.id);touchSphSet(set);sphUi.editI=-1;renderSph();
+    });
+    if($('sphEditOk'))$('sphEditOk').onclick=()=>{
+      const vi=$('sphEditVi').value.trim();if(!vi){$('sphEditVi').focus();return;}
+      set.words[sphUi.editI]={vi,tr:$('sphEditTr').value.trim()};invalidateSphSession(set.id);touchSphSet(set);sphUi.editI=-1;renderSph();
+    };
+    if($('sphEditNo'))$('sphEditNo').onclick=()=>{sphUi.editI=-1;renderSph();};
+    if($('sphAddBtn'))$('sphAddBtn').onclick=()=>{sphUi.method='add';sphUi.editI=-1;renderSph();};
+    if($('sphAdd'))$('sphAdd').onclick=()=>{
+      const vi=$('sphVi').value.trim(),tr=$('sphTr').value.trim(),err=$('sphErr');
+      if(!vi){err.textContent='Type the Vietnamese word first.';err.hidden=false;$('sphVi').focus();return;}
+      set.words.push({vi,tr});invalidateSphSession(set.id);touchSphSet(set);renderSph();
+      requestAnimationFrame(()=>$('sphVi')&&$('sphVi').focus());
+    };
+    if($('sphAddDone'))$('sphAddDone').onclick=()=>{sphUi.method=null;renderSph();};
+    if($('sphVi'))$('sphVi').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sphAdd').click();}});
+    if($('sphTr'))$('sphTr').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sphAdd').click();}});
+    if($('sphGo'))$('sphGo').onclick=()=>startSphPractice(set);
+    if($('sphCont'))$('sphCont').onclick=()=>{const p=pausedSession;pausedSession=null;startSession(p);};
+    $('sphDelSet').onclick=()=>{
+      if(!sphUi.armDelete){sphUi.armDelete=true;$('sphDelSet').textContent='Tap again to delete';setTimeout(()=>{sphUi.armDelete=false;if($('sphDelSet'))$('sphDelSet').textContent='Delete homework';},4000);return;}
+      invalidateSphSession(set.id);touchSphSet(set,{deleted:true,words:[]});
+      sphUi.mode='home';sphUi.setId=null;sphUi.armDelete=false;sphUi.method=null;renderSph();
+    };
+    return;
+  }
+
+  sphUi.mode='home';
+  box.innerHTML=sphGridPanel(null);
+  bindSphGrid(box);
+}
 
 // ---------- Settings ----------
 function applyTheme(){const t=settings.theme||'auto',root=document.documentElement;
@@ -17169,7 +17409,7 @@ $('importBtn').onclick=()=>$('importFile').click();
 $('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{const d=JSON.parse(t);if(!d||d.app!=='vietnamese-daily-course')throw new Error('not a progress file');applySnapshot(mergeSnaps(snapshot(),d));$('backupMsg').textContent='Progress added to your account.';})
   .catch(err=>{$('backupMsg').textContent='Could not import: '+err.message;});e.target.value='';};
 let resetArmed=false;$('resetBtn').onclick=()=>{if(!resetArmed){resetArmed=true;$('resetBtn').textContent='Tap again to erase everything';setTimeout(()=>{resetArmed=false;$('resetBtn').textContent='Reset progress';},4000);return;}
-  progress={done:{},streak:0,last:null};srs={};forgot={};session=null;pausedSession=null;save();resetArmed=false;$('resetBtn').textContent='Reset progress';updateStats();showView('today');};
+  progress={done:{},streak:0,last:null};srs={};forgot={};sph={sets:[]};rebuildSphWords();session=null;pausedSession=null;sphUi.mode='home';sphUi.setId=null;sphUi.draft=null;save();resetArmed=false;$('resetBtn').textContent='Reset progress';updateStats();showView('today');};
 
 // Enter moves on when no answer box is focused
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;const nx=$('nextBtn');if(nx&&!nx.hidden&&document.querySelector('#view-today.active')){e.preventDefault();nx.click();}});
