@@ -222,6 +222,7 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
 <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4M12 16.8h.01"/></symbol>
 <symbol id="i-retry" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v5h-5"/></symbol>
 <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="i-arrowl" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
 <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21c-3.9 0-7-2.8-7-6.6 0-3 2-5 3.6-6.8.4 1.8 1.3 3 2.6 3.6C11 7.6 12.5 5 15 3c.2 3 1.4 4.5 2.6 6.2 1 1.4 1.4 2.8 1.4 4.6 0 4-3 7.2-7 7.2z"/></symbol>
 <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18.5h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.5 9.5 4.5 4.5 0 0 0 7 18.5z"/></symbol>
 <symbol id="i-cloud-off" viewBox="0 0 24 24"><path d="M7 18.5h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.5 9.5 4.5 4.5 0 0 0 7 18.5z"/><path d="M4 4l16 16"/></symbol>
@@ -16888,11 +16889,14 @@ function buildReview(ids,kind){
   const steps=[];ids.forEach((id,k)=>steps.push({t:'review',id,mode:kind==='forgot'?(isPattern(WORDS[id])?'meaning':k%2?'listen':'recall'):pickMode(id),sec:'Review'}));
   steps.push({t:'summary',sec:'Done'});return {kind,steps,i:0,results:[]};
 }
-function startSession(s){attempt=1;hintsUsed=0;session=s;save();showView('today');renderToday();}
+function startSession(s){hintsUsed=0;session=s;revisit=(s.results||[]).some(x=>x.si===s.i);attempt=revisit?2:1;save();showView('today');renderToday();}
 function record(ok,extra={}){const st=session.steps[session.i];
-  if(attempt>1){const r=session.results[session.results.length-1];if(r&&ok)r.retryOk=true;save();return;} // only the first try is scored
-  session.results.push({sec:st.sec,id:st.id||null,ok,hints:hintsUsed,...extra});save();}
-function next(){stopSpeech();attempt=1;hintsUsed=0;session.i=Math.min(session.i+1,session.steps.length-1);save();renderToday();window.scrollTo({top:$('today').offsetTop-10,behavior:'smooth'});}
+  if(attempt>1){const r=session.results.find(x=>x.si===session.i);if(r&&ok&&!revisit)r.retryOk=true;save();return;} // only the first try is scored
+  session.results.push({si:session.i,sec:st.sec,id:st.id||null,ok,hints:hintsUsed,...extra});save();}
+// A step that already has a score is only practised again when we come back to it: it is not scored or scheduled twice
+function enterStep(){stopSpeech();hintsUsed=0;revisit=session.results.some(x=>x.si===session.i);attempt=revisit?2:1;save();renderToday();window.scrollTo({top:$('today').offsetTop-10,behavior:'smooth'});}
+function next(){session.i=Math.min(session.i+1,session.steps.length-1);enterStep();}
+function back(){if(!session||session.i<=0||session.steps[session.i].t==='summary')return;session.i--;enterStep();}
 function requeue(id){ // ask a missed review word once more at the end of the review part
   const st=session.steps;let last=session.i;for(let k=session.i+1;k<st.length;k++)if(st[k].sec==='Review'||st[k].sec==='Checkpoint test')last=k;
   st.splice(last+1,0,{t:'review',id,mode:isPattern(WORDS[id])?'meaning':'recall',sec:st[session.i].sec,retry:true});
@@ -16906,8 +16910,10 @@ function renderToday(){
   const box=$('today');
   if(!session){box.innerHTML=dashboardHtml();bindDashboard();return;}
   const st=session.steps[session.i];
-  const head=`<div class="lessonbar"><button class="iconbtn" id="quitBtn" title="Pause">${ic('pause')}</button><div class="progress"><div style="width:${session.i/(session.steps.length-1)*100}%"></div></div><span class="count">${session.i+1}/${session.steps.length}</span></div>`;
+  const canBack=session.i>0&&st.t!=='summary';
+  const head=`<div class="lessonbar">${canBack?`<button class="iconbtn" id="backBtn" title="Previous step (←)" aria-label="Previous step">${ic('arrowl')}</button>`:''}<button class="iconbtn" id="quitBtn" title="Pause">${ic('pause')}</button><div class="progress"><div style="width:${session.i/(session.steps.length-1)*100}%"></div></div><span class="count">${session.i+1}/${session.steps.length}</span></div>`;
   box.innerHTML=head+`<div class="stage" id="stage"></div>`;
+  if($('backBtn'))$('backBtn').onclick=back;
   $('quitBtn').onclick=()=>{pausedSession=session;session=null;save();
     if(pausedSession&&pausedSession.kind==='sph'){sphUi.mode='set';sphUi.setId=pausedSession.setId;showView('sph');}
     else renderToday();};
@@ -16938,7 +16944,7 @@ function dashboardHtml(){
 }
 
 // ---------- Step renderers ----------
-let attempt=1,hintsUsed=0; // for the current step: which try this is, and how many hints were opened
+let attempt=1,hintsUsed=0,revisit=false; // for the current step: which try this is, how many hints were opened, and whether it was already answered (we came back to it)
 function answerArea(ph){return `<input id="ans" class="ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="vi" placeholder="${escapeHtml(ph)}">${keypad()}`;}
 // Hints, weakest first
 const firstLetters=t=>t.split(/\s+/).map(x=>x.replace(/(\p{L})(\p{L}*)/u,(m,a,b)=>a+'·'.repeat(b.length))).join(' ');
@@ -16958,8 +16964,8 @@ function setupHints(levels){const b=$('hintBtn'),box=$('hintBox');if(!b||!box)re
 // Try again: the same task once more (the first try is what counts for the score)
 function retryStep(){attempt++;hintsUsed=0;renderToday();}
 function retryButton(){const nx=$('nextBtn');if(!nx||$('retryBtn'))return;const b=document.createElement('button');b.className='secondary';b.id='retryBtn';b.innerHTML=ic('retry')+'Try again';b.onclick=retryStep;nx.before(b);}
-const tryTag=()=>attempt>1?` · try ${attempt}`:'';
-const verdictNote=ok=>!ok?'':attempt>1?`<div class="small">Fixed on try ${attempt}</div>`:hintsUsed?`<div class="small">With ${hintsUsed} hint${hintsUsed>1?'s':''}. Next time try without.</div>`:'';
+const tryTag=()=>revisit?' · again':attempt>1?` · try ${attempt}`:'';
+const verdictNote=ok=>!ok||revisit?'':attempt>1?`<div class="small">Fixed on try ${attempt}</div>`:hintsUsed?`<div class="small">With ${hintsUsed} hint${hintsUsed>1?'s':''}. Next time try without.</div>`:'';
 function finishCheck(ok){['checkBtn','skipBtn','hintBtn','clearBtn'].forEach(id=>{if($(id))$(id).hidden=true;});const nx=$('nextBtn');nx.hidden=false;if(!ok)retryButton();nx.focus();}
 function checkFlow(stage,answers,{onResult,showAnswer=true,extraAfter=''}={}){
   const inp=$('ans'),fb=stage.querySelector('.fb');
@@ -17024,7 +17030,7 @@ const RENDER={
     checkFlow(el,w.make.vi,{onResult:g=>{record(g.ok);
         // a sentence can be right in more ways than the listed answers: let the learner overrule a wrong mark
         if(!g.ok&&!g.empty){const b=document.createElement('button');b.className='ghost';b.innerHTML=ic('check')+'Mine is right too';
-          b.onclick=()=>{const r=session.results[session.results.length-1];if(attempt>1)r.retryOk=true;else r.ok=true;save();b.disabled=true;b.textContent='Counted as correct';};$('nextBtn').before(b);}},
+          b.onclick=()=>{const r=session.results.find(x=>x.si===session.i)||session.results[session.results.length-1];if(r){if(attempt>1)r.retryOk=true;else r.ok=true;}save();b.disabled=true;b.textContent='Counted as correct';};$('nextBtn').before(b);}},
       extraAfter:others.length?`<div class="small" style="margin-top:6px">Also right: ${others.map(escapeHtml).join(' · ')}</div>`:''});},
 
   free(st,el){const w=WORDS[st.id];
@@ -17598,6 +17604,14 @@ const acctMenu=open=>{$('acctMenu').hidden=!open;$('acctBtn').setAttribute('aria
 $('acctBtn').onclick=e=>{e.stopPropagation();acctMenu($('acctMenu').hidden);};
 document.addEventListener('click',e=>{if(!$('acctMenu').hidden&&!e.target.closest('.acct'))acctMenu(false);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')acctMenu(false);});
+// Left arrow = previous step, Right arrow = next (when a Next button is showing); not while typing in a box
+document.addEventListener('keydown',e=>{
+  if((e.key!=='ArrowLeft'&&e.key!=='ArrowRight')||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  const t=e.target&&e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
+  if(!session||!document.querySelector('#view-today.active'))return;
+  if(e.key==='ArrowLeft'){const b=$('backBtn');if(b){e.preventDefault();b.click();}}
+  else{const nx=$('nextBtn');if(nx&&!nx.hidden&&!nx.disabled){e.preventDefault();nx.click();}}
+});
 $('logoutTop').onclick=$('switchBtn').onclick=()=>{$('logoutTop').disabled=$('switchBtn').disabled=true;signOut();};
 if(ACCT){renderToday();pullCloud();}
 else{setAuthMode('login');const m=raw.get('vdc_authMsg','');if(m){raw.del('vdc_authMsg');$('authErr').textContent=m;$('authErr').hidden=false;}$('authName').focus();}
