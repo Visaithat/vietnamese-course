@@ -17231,18 +17231,18 @@ function saveNewSphSet(title,words){
   sphUi.mode='set';sphUi.setId=set.id;sphUi.method=null;sphUi.draft=null;sphUi.editI=-1;sphUi.armDelete=false;
   renderSph();
 }
-// kind: 'listen' = hear it, write it | 'translate' = read the translation, write it | 'mix' = both, shuffled together
+// kind: 'listen' = hear it, write it | 'translate' = read the translation, write it | 'mix' = both tasks for each word, one word after another
 function startSphPractice(set,kind='mix'){
   if(!set.words.length)return;
   rebuildSphWords();
-  let steps=[];
-  set.words.forEach((w,i)=>{
+  const steps=[];
+  // words come in random order; in Mix the two tasks for one word stay together (hear it, then its translation)
+  shuffle(set.words.map((w,i)=>({w,i}))).forEach(({w,i})=>{
     const id='sph-'+set.id+'-'+i;
     if(kind!=='translate')steps.push({t:'spell',id,mode:'audio',sec:'Listening',noHints:true});
     if(kind!=='listen'&&w.tr)steps.push({t:'spell',id,mode:'meaning',sec:'Meaning',noHints:true});
   });
   if(!steps.length)return;
-  steps=shuffle(steps);
   steps.push({t:'summary',sec:'Done'});
   pausedSession=null;
   startSession({kind:'sph',setId:set.id,title:set.title,steps,i:0,results:[]});
@@ -17388,7 +17388,7 @@ function renderSph(){
         <button class="primary" id="sphGoTr" ${set.words.some(w=>w.tr)?'':'disabled'} title="Needs words with a translation">${ic('chat')} Translate</button>
         <button class="primary" id="sphGoMix" ${set.words.length?'':'disabled'}>${ic('play')} Mix</button>
       </div>
-      <p class="small" style="margin:6px 0 0">Listening: hear the word, write it. Translate: read the meaning, write the word. Mix: both shuffled together.${set.words.some(w=>w.tr)?'':' Add translations to use Translate.'}</p>
+      <p class="small" style="margin:6px 0 0">Listening: hear the word, write it. Translate: read the meaning, write the word. Mix: hear a word, then write its translation, word by word.${set.words.some(w=>w.tr)?'':' Add translations to use Translate.'}</p>
       <div class="actions">
         ${addForm?'':`<button class="secondary" id="sphAddBtn">${ic('pencil')} Add words</button>`}
         ${splitForm||set.words.length<2?'':`<button class="secondary" id="sphSplitBtn">${ic('file')} Split into parts</button>`}
