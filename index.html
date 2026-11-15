@@ -17204,6 +17204,22 @@ function invalidateSphSession(setId){
   if(session&&session.kind==='sph'&&session.setId===setId)session=null;
   if(pausedSession&&pausedSession.kind==='sph'&&pausedSession.setId===setId)pausedSession=null;
 }
+// Cut a homework into n parts in the same order (the first parts get the extra words)
+function splitSphWords(words,n){
+  const base=Math.floor(words.length/n),extra=words.length%n,parts=[];let at=0;
+  for(let k=0;k<n;k++){const size=base+(k<extra?1:0);parts.push(words.slice(at,at+size));at+=size;}
+  return parts;
+}
+function sphSplitSet(set,n){
+  const now=Date.now(),parts=splitSphWords(set.words,n);
+  parts.forEach((ws,k)=>{
+    const p={id:newSphId(),title:`${set.title} · Part ${k+1}`,createdAt:now+k,updatedAt:now+k,words:ws.map(w=>({vi:w.vi,tr:w.tr||''}))};
+    if(set.from)p.from=set.from;
+    sph.sets.push(p);
+  });
+  persistSph();
+  return parts.length;
+}
 function parseSphPaste(viText,trText){
   const vi=String(viText||'').split(/\r?\n/),tr=String(trText||'').split(/\r?\n/),words=[];
   for(let i=0;i<vi.length;i++){const v=vi[i].trim();if(!v)continue;words.push({vi:v,tr:(tr[i]||'').trim()});}
@@ -17326,7 +17342,8 @@ function renderSph(){
   if(sphUi.mode==='set'&&sphSetById(sphUi.setId)){
     const set=sphSetById(sphUi.setId);
     const pausedSph=pausedSession&&pausedSession.kind==='sph'&&pausedSession.setId===set.id;
-    const addForm=sphUi.method==='add';
+    const addForm=sphUi.method==='add',splitForm=sphUi.method==='split';
+    const splitMax=Math.max(2,Math.min(set.words.length,30));
     box.innerHTML=`${sphGridPanel(set.id)}<div class="panel" id="sphDetail" style="margin-top:12px">
       <div class="vhead"><div>
         ${sphUi.method==='rename'
@@ -17355,10 +17372,17 @@ function renderSph(){
           <button class="ghost" id="sphAddDone">Done</button></div>
         <p class="small" id="sphErr" hidden></p>
       </div>`:''}
+      ${splitForm?`<div style="margin-top:16px">
+        <label class="field"><span>How many parts?</span><div class="box"><input id="sphSplitN" type="number" inputmode="numeric" min="2" max="${splitMax}" value="${Math.min(splitMax,Math.max(2,sphUi.splitN||Math.ceil(set.words.length/15)))}"></div></label>
+        <p class="small" id="sphSplitInfo"></p>
+        <div class="actions"><button class="primary" id="sphSplitOk">${ic('check')} Split</button>
+          <button class="ghost" id="sphSplitNo">Cancel</button></div>
+      </div>`:''}
       <div class="actions">
         ${pausedSph?`<button class="primary" id="sphCont">${ic('play')} Continue</button>`:''}
         <button class="primary" id="sphGo" ${set.words.length?'':'disabled'}>${ic('play')} Practice</button>
         ${addForm?'':`<button class="secondary" id="sphAddBtn">${ic('pencil')} Add words</button>`}
+        ${splitForm||set.words.length<2?'':`<button class="secondary" id="sphSplitBtn">${ic('file')} Split into parts</button>`}
         <button class="danger" id="sphDelSet">${sphUi.armDelete?'Tap again to delete':'Delete homework'}</button>
       </div>
     </div>`;
@@ -17383,6 +17407,20 @@ function renderSph(){
       requestAnimationFrame(()=>$('sphVi')&&$('sphVi').focus());
     };
     if($('sphAddDone'))$('sphAddDone').onclick=()=>{sphUi.method=null;renderSph();};
+    if($('sphSplitBtn'))$('sphSplitBtn').onclick=()=>{sphUi.method='split';sphUi.editI=-1;sphUi.splitN=0;renderSph();requestAnimationFrame(()=>{const i=$('sphSplitN');if(i){i.focus();i.select();}});};
+    if($('sphSplitNo'))$('sphSplitNo').onclick=()=>{sphUi.method=null;renderSph();};
+    if($('sphSplitN')){
+      const nIn=$('sphSplitN'),info=$('sphSplitInfo'),ok=$('sphSplitOk');
+      const cur=()=>{const n=Math.floor(+nIn.value);return n>=2&&n<=splitMax?n:0;};
+      const upd=()=>{const n=cur();ok.disabled=!n;
+        if(!n){info.textContent=`Enter a number from 2 to ${splitMax}.`;return;}
+        const sizes=splitSphWords(set.words,n).map(p=>p.length);
+        info.textContent=`${set.words.length} words into ${n} parts: ${sizes.join(', ')} words. The original homework stays as it is.`;};
+      nIn.addEventListener('input',upd);nIn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ok.click();}});upd();
+      ok.onclick=()=>{const n=cur();if(!n)return;
+        const made=sphSplitSet(set,n);sphUi.method=null;sphUi.mode='home';sphUi.setId=null;
+        sphNotice(`"${set.title}" split into ${made} parts. They are in the Homework map.`);};
+    }
     if($('sphVi'))$('sphVi').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sphAdd').click();}});
     if($('sphTr'))$('sphTr').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sphAdd').click();}});
     if($('sphGo'))$('sphGo').onclick=()=>startSphPractice(set);
