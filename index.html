@@ -17231,15 +17231,18 @@ function saveNewSphSet(title,words){
   sphUi.mode='set';sphUi.setId=set.id;sphUi.method=null;sphUi.draft=null;sphUi.editI=-1;sphUi.armDelete=false;
   renderSph();
 }
-function startSphPractice(set){
+// kind: 'listen' = hear it, write it | 'translate' = read the translation, write it | 'mix' = both, shuffled together
+function startSphPractice(set,kind='mix'){
   if(!set.words.length)return;
   rebuildSphWords();
-  const steps=[];
-  shuffle(set.words.map((w,i)=>({w,i}))).forEach(({w,i})=>{
+  let steps=[];
+  set.words.forEach((w,i)=>{
     const id='sph-'+set.id+'-'+i;
-    steps.push({t:'spell',id,mode:'audio',sec:'Listening',noHints:true});
-    if(w.tr)steps.push({t:'spell',id,mode:'meaning',sec:'Meaning',noHints:true});
+    if(kind!=='translate')steps.push({t:'spell',id,mode:'audio',sec:'Listening',noHints:true});
+    if(kind!=='listen'&&w.tr)steps.push({t:'spell',id,mode:'meaning',sec:'Meaning',noHints:true});
   });
+  if(!steps.length)return;
+  steps=shuffle(steps);
   steps.push({t:'summary',sec:'Done'});
   pausedSession=null;
   startSession({kind:'sph',setId:set.id,title:set.title,steps,i:0,results:[]});
@@ -17378,9 +17381,15 @@ function renderSph(){
         <div class="actions"><button class="primary" id="sphSplitOk">${ic('check')} Split</button>
           <button class="ghost" id="sphSplitNo">Cancel</button></div>
       </div>`:''}
-      <div class="actions">
+      <div class="label" style="margin-top:18px">Practice</div>
+      <div class="actions" style="margin-top:6px">
         ${pausedSph?`<button class="primary" id="sphCont">${ic('play')} Continue</button>`:''}
-        <button class="primary" id="sphGo" ${set.words.length?'':'disabled'}>${ic('play')} Practice</button>
+        <button class="primary" id="sphGoListen" ${set.words.length?'':'disabled'}>${ic('headphones')} Listening</button>
+        <button class="primary" id="sphGoTr" ${set.words.some(w=>w.tr)?'':'disabled'} title="Needs words with a translation">${ic('chat')} Translate</button>
+        <button class="primary" id="sphGoMix" ${set.words.length?'':'disabled'}>${ic('play')} Mix</button>
+      </div>
+      <p class="small" style="margin:6px 0 0">Listening: hear the word, write it. Translate: read the meaning, write the word. Mix: both shuffled together.${set.words.some(w=>w.tr)?'':' Add translations to use Translate.'}</p>
+      <div class="actions">
         ${addForm?'':`<button class="secondary" id="sphAddBtn">${ic('pencil')} Add words</button>`}
         ${splitForm||set.words.length<2?'':`<button class="secondary" id="sphSplitBtn">${ic('file')} Split into parts</button>`}
         <button class="danger" id="sphDelSet">${sphUi.armDelete?'Tap again to delete':'Delete homework'}</button>
@@ -17423,7 +17432,9 @@ function renderSph(){
     }
     if($('sphVi'))$('sphVi').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sphAdd').click();}});
     if($('sphTr'))$('sphTr').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sphAdd').click();}});
-    if($('sphGo'))$('sphGo').onclick=()=>startSphPractice(set);
+    if($('sphGoListen'))$('sphGoListen').onclick=()=>startSphPractice(set,'listen');
+    if($('sphGoTr'))$('sphGoTr').onclick=()=>startSphPractice(set,'translate');
+    if($('sphGoMix'))$('sphGoMix').onclick=()=>startSphPractice(set,'mix');
     if($('sphCont'))$('sphCont').onclick=()=>{const p=pausedSession;pausedSession=null;startSession(p);};
     $('sphDelSet').onclick=()=>{
       if(!sphUi.armDelete){sphUi.armDelete=true;$('sphDelSet').textContent='Tap again to delete';setTimeout(()=>{sphUi.armDelete=false;if($('sphDelSet'))$('sphDelSet').textContent='Delete homework';},4000);return;}
