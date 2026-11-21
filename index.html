@@ -74,6 +74,13 @@ body.locked .auth{display:grid}body.locked header.top,body.locked main{display:n
 .legend{display:flex;gap:12px;align-items:center}.legend span{display:inline-flex;gap:4px;align-items:center}
 .small{font-size:.86rem;color:var(--muted)}.muted{color:var(--muted);font-weight:400}
 .rowbetween{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.wordsbtn{display:flex;align-items:center;gap:12px;width:100%;margin-top:10px;text-align:left;background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px;font-weight:600}
+.wordsbtn .wic{width:40px;height:40px;border-radius:12px;background:var(--soft);color:var(--softink);display:grid;place-items:center;flex:none}.wordsbtn .wic .ic{width:20px;height:20px}
+.wordsbtn .wtx{display:block;min-width:0}.wordsbtn b{display:block;font-size:.98rem}.wordsbtn small{display:block;color:var(--muted);font-weight:500;font-size:.78rem;margin-top:1px}
+.wordsbtn .go{margin-left:auto;color:var(--muted);flex:none;display:grid;place-items:center;transition:transform .15s}
+.wordsbtn.compact{width:auto;margin-top:0;padding:10px 14px;gap:8px;background:var(--soft);color:var(--softink);border-color:transparent}
+@media(hover:hover){.wordsbtn:hover{border-color:var(--accent)}.wordsbtn:hover .go{transform:translateX(3px);color:var(--accent)}.wordsbtn.compact:hover{border-color:transparent;filter:brightness(.96)}}
+.wordsbtn:active{transform:translateY(1px)}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;align-items:center}
 .label{font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin:18px 0 6px}
 .iconbtn{width:38px;height:38px;padding:0;border-radius:50%;background:var(--soft);color:var(--accent);position:relative;flex:none}
@@ -17002,7 +17009,7 @@ function dashboardHtml(){
     main=`${nav}<h2>${escapeHtml(d.title)}</h2>
     <div class="preview">${d.words.slice(0,8).map(w=>`<span>${escapeHtml(w.vi)}</span>`).join('')}${d.words.length>8?`<span class="more">+${d.words.length-8}</span>`:''}</div>
     <div class="meta">${ic('sparkle','sm')} ${d.words.length} ${isNow?'new':'words'}${isNow&&due?` ${dot} ${ic('retry','sm')} ${Math.min(due,20)} review`:''}${cp?` ${dot} ${ic('star','sm')} week test`:''} ${dot} ${ic('clock','sm')} ${Math.round(12+d.words.length*1.3+(isNow?Math.min(due,n>70?30:20)*.4:0)+(d.grammar?d.grammar.length*1.5:0)+(d.reading?6:0)+(d.listen?4:0))} min</div>
-    <div class="actions">${pausedHere?`<button class="primary" id="resumeBtn">${ic('play')} Continue</button><button class="ghost" id="startBtn">Restart</button>`:`<button class="primary" id="startBtn">${isNow?ic('play')+' Start Day '+n:ic('retry')+' Practise Day '+n+' again'}</button>`}<button class="secondary" id="wordsBtn">${ic('pencil')} Practise each word</button></div>`;}
+    <div class="actions">${pausedHere?`<button class="primary" id="resumeBtn">${ic('play')} Continue</button><button class="ghost" id="startBtn">Restart</button>`:`<button class="primary" id="startBtn">${isNow?ic('play')+' Start Day '+n:ic('retry')+' Practise Day '+n+' again'}</button>`}</div><button class="wordsbtn" id="wordsBtn"><span class="wic">${ic('pencil')}</span><span class="wtx"><b>Practise each word</b><small>Hear it, write it, one word at a time · ${d.words.length} words</small></span><span class="go">${ic('arrow','sm')}</span></button>`;}
   const extra=`<div class="tiles"><button class="tile" id="revBtn" ${due?'':'disabled'}><span class="tic">${ic('retry')}</span><span><b>${due}</b><small>to review</small></span></button>
   <button class="tile hot" id="fgBtn" ${fc?'':'disabled'}><span class="tic">${ic('forgot')}</span><span><b>${fc}</b><small>forgotten</small></span></button></div>`;
   bindDashboard=()=>{
@@ -17311,7 +17318,7 @@ function renderMap(){const nd=nextDay();let h='';
   $('mapGrid').innerHTML=h;
   const nt=$('mapGrid').querySelector('.daytile.next');if(nt&&nd>7)nt.scrollIntoView({block:'center'});
   $('mapGrid').querySelectorAll('.daytile[data-day]').forEach(b=>b.onclick=()=>{const n=+b.dataset.day,d=dayMap[n];
-    $('mapDetail').innerHTML=`<div class="panel" style="margin-top:12px"><div class="rowbetween"><div><span class="daylabel">Day ${n}</span><h2 style="margin:6px 0 0">${escapeHtml(d.title)}</h2></div><div class="actions" style="margin:0"><button class="secondary" id="mapWords">${ic('pencil')} Practise each word</button><button class="primary" id="mapStart">${progress.done[n]?ic('retry')+'Practise again':ic('play')+'Start'}</button></div></div>
+    $('mapDetail').innerHTML=`<div class="panel" style="margin-top:12px"><div class="rowbetween"><div><span class="daylabel">Day ${n}</span><h2 style="margin:6px 0 0">${escapeHtml(d.title)}</h2></div><div class="actions" style="margin:0"><button class="wordsbtn compact" id="mapWords">${ic('pencil')} Practise each word</button><button class="primary" id="mapStart">${progress.done[n]?ic('retry')+'Practise again':ic('play')+'Start'}</button></div></div>
       <div class="wordlist" style="margin-top:12px">${d.words.map(w=>`<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`).join('')}</div></div>`;
     $('mapStart').onclick=()=>startSession(buildLesson(n));$('mapWords').onclick=()=>startSession(buildWordPractice(n));$('mapDetail').scrollIntoView({behavior:'smooth'});});}
 function wordRow(w){const s=srs[w.id];return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div><div class="meta">Day ${w.day}${s?` · <span class="box b${s.box}" title="memory box ${s.box} of 5">${s.box}</span> · ${s.due<=today()?'<b>review today</b>':'review in '+(s.due-today())+'d'}`:''}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}
