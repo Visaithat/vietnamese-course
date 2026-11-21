@@ -83,9 +83,23 @@ kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2
 /* Today */
 .banner{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:10px;font-size:.92rem}.banner>span{flex:1;min-width:0}.banner>.ic{color:var(--accent)}.banner.warn{background:var(--warn);border-color:var(--warnline)}.banner.warn>.ic{color:var(--warnink)}.banner button{padding:8px 12px}.banner .iconbtn{width:32px;height:32px;background:transparent;color:var(--muted)}
 .daycard{padding:24px}
-.daynav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}.daynav .iconbtn{width:34px;height:34px}.daynav .iconbtn:disabled{opacity:.35}.daynav .iconbtn .ic{width:18px;height:18px}
-.daynav select{border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--surface);max-width:100%;font-size:.9rem;font-weight:600}.daynav .back{padding:7px 12px;font-size:.88rem}
-.daydone{color:var(--goodink);background:var(--good);border-radius:8px;padding:2px 8px;font-size:.78rem;font-weight:700;letter-spacing:0;text-transform:none}
+.daynav{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.daystep{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px}
+.daystep .iconbtn{width:30px;height:30px;background:transparent;color:var(--muted)}.daystep .iconbtn:hover:not(:disabled){background:var(--chip);color:var(--ink)}.daystep .iconbtn:disabled{opacity:.3}.daystep .iconbtn .ic{width:16px;height:16px}
+.daypick{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;background:transparent;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}.daypick:hover{background:var(--chip)}.daypick.cp{color:var(--warnink)}.daypick .of{color:var(--muted2)}.daypick .chev{font-size:.72rem;color:var(--muted);margin-left:1px}
+.daynav-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.daynav .back{padding:6px 12px;font-size:.82rem;border-radius:99px;background:var(--soft);color:var(--softink)}.daynav .back:hover{filter:brightness(1.08)}
+.daydone{color:var(--goodink);background:var(--good);border-radius:99px;padding:4px 10px;font-size:.76rem;font-weight:700;letter-spacing:0;text-transform:none}
+.daypop{position:fixed;inset:0;z-index:80;background:#0007;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px;animation:fade .15s ease-out}
+.daypop-card{background:var(--card);border:1px solid var(--line);border-radius:22px;width:min(460px,100%);max-height:min(78vh,560px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 16px 48px #0008}
+.daypop-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;gap:10px}.daypop-hd b{font-size:1rem}.daypop-hd .iconbtn{width:32px;height:32px;background:var(--surface);color:var(--muted)}
+.daypop-search{padding:0 16px 10px}.daypop-search input{width:100%;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:9px 12px;outline:none;font-size:.94rem}.daypop-search input:focus{border-color:var(--accent)}
+.daylist{overflow-y:auto;padding:4px 12px 12px;display:flex;flex-direction:column;gap:4px}
+.dayrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;justify-content:flex-start;padding:9px 10px;border-radius:13px;background:transparent;border:1px solid transparent;font-weight:500}.dayrow:hover{background:var(--surface)}.dayrow.cur{background:var(--soft);border-color:var(--accent)}
+.dayrow .num{min-width:34px;height:26px;padding:0 7px;border-radius:8px;background:var(--surface);color:var(--muted);font-size:.78rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:2px;flex:none}.dayrow.cur .num{background:var(--accent);color:var(--onaccent)}.dayrow.cp .num{color:var(--warnink)}
+.dayrow .ttl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.94rem;font-weight:600}
+.dayrow .tag{font-size:.74rem;font-weight:700;padding:2px 8px;border-radius:99px;flex:none}.dayrow .tag.now{background:var(--soft);color:var(--softink)}.dayrow .tag.ok{color:var(--goodink);background:var(--good)}
+.dayempty{text-align:center;color:var(--muted);padding:24px 12px;font-size:.9rem}
 .daylabel{display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}.daylabel .of{color:var(--muted2)}.daylabel.cp{color:var(--warnink)}
 .daycard h2{font-size:clamp(1.6rem,4.5vw,2.2rem);margin:6px 0 14px}
 .preview{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.preview span{background:var(--surface);border-radius:10px;padding:5px 10px;font-weight:600;font-size:.92rem}.preview .more{background:transparent;color:var(--muted)}
@@ -176,6 +190,10 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
   .actions>.primary,.actions>.success,.actions>.danger,.actions>.secondary{flex:1 1 auto;min-height:50px}
   .setrow>label{min-width:0}
   .tile{padding:12px;gap:10px}.tile .tic{width:38px;height:38px}
+  .daystep .iconbtn{width:38px;height:38px}.daypick{padding:8px 12px;font-size:.82rem}.daynav .back{padding:8px 14px;font-size:.86rem}
+  .daypop{align-items:end;padding:0}.daypop-card{border-radius:22px 22px 0 0;border-bottom:0;max-height:80vh;max-height:80dvh;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .daypop-card::before{content:"";display:block;width:36px;height:4px;border-radius:99px;background:var(--line);margin:10px auto 0;flex:none}
+  .daypop-hd{padding:10px 16px 8px}.daypop-hd .iconbtn{width:38px;height:38px}.daylist{-webkit-overflow-scrolling:touch}.dayrow{padding:12px 10px}
 }
 .gcard .pattern{font-weight:700;font-size:1.12rem;background:var(--soft);color:var(--softink);border-radius:12px;padding:10px 14px;margin:12px 0}.gcard .explain{line-height:1.6;margin:0 0 6px}
 .passage{background:var(--surface);border-radius:16px;padding:14px 16px;margin:10px 0;line-height:1.85;font-size:1.08rem}.passage .sent{cursor:pointer;border-radius:6px;padding:1px 2px}.passage .sent:hover{background:var(--chip)}.passage.en{font-size:.95rem;color:var(--muted);line-height:1.6}
@@ -16971,12 +16989,10 @@ function dashboardHtml(){
     :`<div class="empty">${ic('trophy','lg')}<h2>All ${TOTAL_DAYS} days done</h2><p>Keep your words fresh with the reviews below.</p></div>`)
     +(days.length?`<div class="actions" style="justify-content:center"><button class="secondary" id="dayLast">${ic('arrowl')} Practise an earlier lesson</button></div>`:'');
   else{const d=dayMap[n],cp=isCheckpoint(n),dot='<span class="dot"></span>',i=days.indexOf(n),dn=progress.done[n];
-    const nav=`<div class="daynav"><button class="iconbtn" id="dayPrev" ${i>0?'':'disabled'} title="Previous lesson" aria-label="Previous lesson">${ic('arrowl')}</button>
-      <span class="daylabel ${cp?'cp':''}">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span></span>
-      <button class="iconbtn" id="dayNext" ${i<days.length-1?'':'disabled'} title="Next lesson" aria-label="Next lesson">${ic('arrow')}</button>
-      <select id="daySel" aria-label="Go to a lesson">${days.slice().reverse().map(k=>`<option value="${k}" ${k===n?'selected':''}>Day ${k} · ${escapeHtml(dayMap[k].title)}${progress.done[k]?' ✓':''}</option>`).join('')}</select>
-      ${isNow?'':`<button class="ghost back" id="dayNow">${ic('arrow','sm')} ${nd?'Back to Day '+nd:'Back'}</button>`}
-      ${dn&&!isNow?`<span class="daydone">done · ${dn.score}%</span>`:''}</div>`;
+    const step=days.length>1?`<div class="daystep"><button class="iconbtn" id="dayPrev" ${i>0?'':'disabled'} title="Previous lesson" aria-label="Previous lesson">${ic('arrowl')}</button><button class="daypick ${cp?'cp':''}" id="dayPick" title="Choose any lesson" aria-label="Choose any lesson">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span><span class="chev" aria-hidden="true">▾</span></button><button class="iconbtn" id="dayNext" ${i<days.length-1?'':'disabled'} title="Next lesson" aria-label="Next lesson">${ic('arrow')}</button></div>`
+      :`<span class="daylabel ${cp?'cp':''}">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span></span>`;
+    const right=!isNow?`<div class="daynav-r">${dn?`<span class="daydone">done · ${dn.score}%</span>`:''}<button class="back" id="dayNow">${nd?'Back to Day '+nd:'Back'} ${ic('arrow','sm')}</button></div>`:'';
+    const nav=`<div class="daynav">${step}${right}</div>`;
     main=`${nav}<h2>${escapeHtml(d.title)}</h2>
     <div class="preview">${d.words.slice(0,8).map(w=>`<span>${escapeHtml(w.vi)}</span>`).join('')}${d.words.length>8?`<span class="more">+${d.words.length-8}</span>`:''}</div>
     <div class="meta">${ic('sparkle','sm')} ${d.words.length} ${isNow?'new':'words'}${isNow&&due?` ${dot} ${ic('retry','sm')} ${Math.min(due,20)} review`:''}${cp?` ${dot} ${ic('star','sm')} week test`:''} ${dot} ${ic('clock','sm')} ${Math.round(12+d.words.length*1.3+(isNow?Math.min(due,n>70?30:20)*.4:0)+(d.grammar?d.grammar.length*1.5:0)+(d.reading?6:0)+(d.listen?4:0))} min</div>
@@ -16987,7 +17003,7 @@ function dashboardHtml(){
     const go=k=>{viewDay=k===nd?null:k;renderToday();};
     if($('dayPrev'))$('dayPrev').onclick=()=>go(days[days.indexOf(n)-1]);
     if($('dayNext'))$('dayNext').onclick=()=>go(days[days.indexOf(n)+1]);
-    if($('daySel'))$('daySel').onchange=e=>go(+e.target.value);
+    if($('dayPick'))$('dayPick').onclick=()=>openDayPicker(days,n,nd,go);
     if($('dayNow'))$('dayNow').onclick=()=>go(nd);
     if($('dayLast'))$('dayLast').onclick=()=>go(days[days.length-1]);
     if($('startBtn'))$('startBtn').onclick=()=>{if(pausedHere)pausedSession=null;const s=buildLesson(n);s.fromNext=isNow;startSession(s);}; // practising an earlier day keeps a paused lesson
@@ -16997,6 +17013,38 @@ function dashboardHtml(){
     if($('fgBtn'))$('fgBtn').onclick=()=>startSession(buildReview(shuffle(Object.keys(forgot)).slice(0,25),'forgot'));
   };
   return `${saveBannerHtml()}<div class="panel daycard">${main}</div>${extra}`;
+}
+function openDayPicker(days,cur,nd,onPick){
+  const old=document.querySelector('.daypop');if(old)old.remove();
+  const rev=days.slice().reverse();
+  const el=document.createElement('div');el.className='daypop';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Choose a lesson');
+  el.innerHTML=`<div class="daypop-card"><div class="daypop-hd"><b>Choose a lesson</b><button class="iconbtn" id="dpClose" aria-label="Close">${ic('x','sm')}</button></div>
+    <div class="daypop-search"><input type="search" id="dpSearch" placeholder="Type day number or topic (e.g. 24, family)..." autocomplete="off"></div>
+    <div class="daylist" id="dpList"></div></div>`;
+  const prevOv=document.body.style.overflow;document.body.style.overflow='hidden';
+  const close=()=>{el.remove();document.body.style.overflow=prevOv;document.removeEventListener('keydown',onKey);};
+  const onKey=e=>{if(e.key==='Escape')close();};
+  document.addEventListener('keydown',onKey);
+  el.onclick=e=>{if(e.target===el)close();};
+  el.querySelector('#dpClose').onclick=close;
+  const pick=k=>{close();onPick(k);};
+  const listEl=el.querySelector('#dpList'),qEl=el.querySelector('#dpSearch');
+  let shown=rev;
+  const draw=()=>{
+    const q=qEl.value.trim().toLowerCase();
+    shown=q?rev.filter(k=>String(k).includes(q)||('day '+k).includes(q)||dayMap[k].title.toLowerCase().includes(q)):rev;
+    if(!shown.length){listEl.innerHTML=`<div class="dayempty">No lesson matching "${escapeHtml(qEl.value.trim())}"</div>`;return;}
+    listEl.innerHTML=shown.map(k=>{const cp=isCheckpoint(k),dn=progress.done[k];
+      const tag=k===nd?`<span class="tag now">Today</span>`:dn?`<span class="tag ok">${dn.score}% ✓</span>`:'';
+      return `<button class="dayrow ${k===cur?'cur':''} ${cp?'cp':''}" data-d="${k}"><span class="num">${cp?ic('star','sm'):''}${k}</span><span class="ttl">${escapeHtml(dayMap[k].title)}</span>${tag}</button>`;}).join('');
+    listEl.querySelectorAll('.dayrow').forEach(b=>b.onclick=()=>pick(+b.dataset.d));
+  };
+  qEl.oninput=draw;
+  qEl.onkeydown=e=>{if(e.key==='Enter'&&shown.length){e.preventDefault();pick(shown[0]);}};
+  draw();
+  document.body.appendChild(el);
+  const curRow=listEl.querySelector('.dayrow.cur');if(curRow)curRow.scrollIntoView({block:'nearest'});
+  if(!('ontouchstart'in window))qEl.focus();
 }
 
 // ---------- Step renderers ----------
