@@ -164,6 +164,18 @@ kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2
 .daytile.next{border-color:var(--accent);background:var(--card)}.daytile:disabled{opacity:.5}
 .wordlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .wi{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:14px;padding:10px 12px}.wi .vi{font-weight:600}.wi .en{color:var(--muted);font-size:.88rem}.wi .meta{font-size:.74rem;color:var(--muted2);margin-top:2px;display:block}.wi .btns{margin-left:auto;display:flex;gap:6px;flex-shrink:0}.wi .iconbtn{width:34px;height:34px}.wi .iconbtn .ic{width:17px;height:17px}
+.wfilter{display:grid;gap:10px;margin-bottom:14px}
+.wsearch{position:relative;display:flex;align-items:center;background:var(--surface);border:2px solid transparent;border-radius:14px;padding:0 6px 0 12px}.wsearch:focus-within{border-color:var(--accent)}.wsearch>.ic{color:var(--muted);flex:none}
+.wsearch input{flex:1;min-width:0;background:transparent;border:0;outline:0;padding:12px 8px;font-size:1rem}.wsearch input::-webkit-search-cancel-button{display:none}
+.wclear{background:var(--chip);color:var(--muted);width:28px;height:28px;padding:0;border-radius:50%;flex:none}
+.wseg{display:flex;background:var(--surface);border-radius:12px;padding:3px;gap:3px}.wseg button{flex:1;background:transparent;color:var(--muted);padding:8px 10px;border-radius:10px;font-size:.88rem}.wseg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.wseg i,.wchips i{font-style:normal;font-size:.72rem;opacity:.7;font-weight:700;margin-left:6px}
+.wrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.wlab{font-size:.74rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;min-width:78px}
+.wchips{display:flex;gap:6px;flex-wrap:wrap}.wchips button{background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:99px;font-size:.84rem;border:1.5px solid transparent}.wchips button.on{background:var(--soft);color:var(--softink);border-color:var(--accent)}
+.wsel{display:grid;grid-template-columns:1fr 1fr;gap:10px}.wsel label{display:grid;gap:3px;font-size:.74rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.wsel select{background:var(--surface);border:2px solid transparent;border-radius:12px;padding:9px 10px;font-size:.92rem;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);outline:0}.wsel select:focus{border-color:var(--accent)}
+.wmeta{display:flex;align-items:center;justify-content:space-between;font-size:.88rem;color:var(--muted)}.wmeta .ghost{padding:6px 10px;font-size:.84rem}
+.wi mark{background:var(--warn);color:var(--warnink);border-radius:4px;padding:0 2px}.wi .wex{font-size:.82rem;color:var(--muted);margin-top:3px}.wi .wex span{display:block;opacity:.85}
+.wnew{font-size:.68rem;font-weight:700;background:var(--chip);color:var(--muted);border-radius:6px;padding:0 5px}.wmiss{color:var(--badink);background:var(--bad);border-radius:6px;padding:0 5px;font-size:.68rem;font-weight:700}
 .toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;align-items:center}.toolbar input[type=search]{flex:1;min-width:180px;background:var(--surface);border:2px solid transparent;border-radius:12px;padding:10px 12px;outline:none}.toolbar input[type=search]:focus{border-color:var(--accent)}
 .swl{display:inline-flex;align-items:center;gap:8px;font-weight:600}
 .box{display:inline-block;min-width:20px;text-align:center;border-radius:6px;padding:0 5px;font-weight:700;font-size:.7rem;background:var(--chip);color:var(--muted)}.box.b1{background:var(--bad);color:var(--badink)}.box.b2{background:var(--warn);color:var(--warnink)}.box.b4,.box.b5{background:var(--good);color:var(--goodink)}
@@ -266,6 +278,7 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
 <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></symbol>
 <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z"/></symbol>
 <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="4.5" y="5" width="15" height="10.5" rx="1.5"/><path d="M2.5 19h19"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></symbol>
 <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
 <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3.5" y="14" width="4" height="6.5" rx="1.5"/><rect x="16.5" y="14" width="4" height="6.5" rx="1.5"/></symbol>
 <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
@@ -322,7 +335,16 @@ footer{padding-bottom:max(20px,env(safe-area-inset-bottom))}
   <section class="view active" id="view-today"><div id="today"></div></section>
   <section class="view" id="view-map"><div class="panel"><div class="vhead"><h2>Course map</h2><span class="small legend"><span><svg class="ic sm"><use href="#i-check"/></svg>done</span><span><svg class="ic sm"><use href="#i-star"/></svg>checkpoint</span></span></div><div id="mapGrid"></div></div><div id="mapDetail"></div></section>
   <section class="view" id="view-forgot"><div class="panel" id="forgotPanel"></div></section>
-  <section class="view" id="view-words"><div class="panel"><div class="toolbar"><input type="search" id="wordSearch" placeholder="Search Vietnamese or English"><label class="small swl"><input type="checkbox" class="switch" id="showAll"> All days</label></div><div class="wordlist" id="wordList"></div></div></section>
+  <section class="view" id="view-words"><div class="panel">
+    <div class="wfilter">
+      <div class="wsearch"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="search" id="wordSearch" placeholder="Search words, meanings or examples" autocomplete="off" spellcheck="false"><button type="button" class="wclear" id="wClear" hidden aria-label="Clear search"><svg class="ic sm" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <div class="wseg" id="wScope" role="group" aria-label="Which words"></div>
+      <div class="wrow"><span class="wlab">Memory box</span><div class="wchips" id="wBox"></div></div>
+      <div class="wrow"><span class="wlab">Show only</span><div class="wchips" id="wFlags"></div></div>
+      <div class="wrow wsel"><label>Level<select id="wStage"></select></label><label>Sort by<select id="wSort"></select></label></div>
+      <div class="wmeta"><span id="wCount"></span><button type="button" class="ghost" id="wReset" hidden>Reset filters</button></div>
+    </div>
+    <div class="wordlist" id="wordList"></div></div></section>
   <section class="view" id="view-sph"><div id="sph"></div></section>
   <section class="view" id="view-settings">
     <div class="group"><div class="gtitle">Sound</div>
@@ -17305,7 +17327,7 @@ function updateStats(){const done=Object.keys(progress.done).length;$('stDays').
   const live=progress.last!==null&&today()-progress.last<=1;$('stStreak').textContent=live?progress.streak:0;
   const fc=Object.keys(forgot).length;$('forgotBadge').hidden=!fc;$('forgotBadge').textContent=fc;}
 function showView(v){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
-  if(v==='map')renderMap();if(v==='words')renderWords();if(v==='forgot')renderForgot();if(v==='today')renderToday();if(v==='sph'){renderSph();pullSphInbox();}}
+  if(v==='map')renderMap();if(v==='words'){renderWordFilters();renderWords();}if(v==='forgot')renderForgot();if(v==='today')renderToday();if(v==='sph'){renderSph();pullSphInbox();}}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showView(t.dataset.view));
 function renderMap(){const nd=nextDay();let h='';
   for(let wk=0;wk*7<TOTAL_DAYS;wk++){const first=wk*7+1,sg=STAGES.find(s=>s.from===first);
@@ -17321,11 +17343,51 @@ function renderMap(){const nd=nextDay();let h='';
     $('mapDetail').innerHTML=`<div class="panel" style="margin-top:12px"><div class="rowbetween"><div><span class="daylabel">Day ${n}</span><h2 style="margin:6px 0 0">${escapeHtml(d.title)}</h2></div><div class="actions" style="margin:0"><button class="wordsbtn compact" id="mapWords">${ic('pencil')} Practise each word</button><button class="primary" id="mapStart">${progress.done[n]?ic('retry')+'Practise again':ic('play')+'Start'}</button></div></div>
       <div class="wordlist" style="margin-top:12px">${d.words.map(w=>`<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`).join('')}</div></div>`;
     $('mapStart').onclick=()=>startSession(buildLesson(n));$('mapWords').onclick=()=>startSession(buildWordPractice(n));$('mapDetail').scrollIntoView({behavior:'smooth'});});}
-function wordRow(w){const s=srs[w.id];return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div><div class="meta">Day ${w.day}${s?` · <span class="box b${s.box}" title="memory box ${s.box} of 5">${s.box}</span> · ${s.due<=today()?'<b>review today</b>':'review in '+(s.due-today())+'d'}`:''}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}
-function renderWords(){const q=stripAll($('wordSearch').value.trim().toLowerCase()),all=$('showAll').checked;
-  const list=Object.values(WORDS).filter(w=>(all||srs[w.id])&&(!q||stripAll(w.vi.toLowerCase()).includes(q)||w.en.toLowerCase().includes(q)));
-  $('wordList').innerHTML=list.length?list.slice(0,400).map(wordRow).join('')+(list.length>400?`<p class="small">…and ${list.length-400} more. Search to narrow down.</p>`:''):`<div class="empty">${ic('book','lg')}<p>${all?'No match.':'Your words show up here after a lesson.'}</p></div>`;}
-$('wordSearch').oninput=renderWords;$('showAll').onchange=renderWords;
+// ---------- Words page: search + filters ----------
+const WF={scope:'learned',box:'any',due:false,forgot:false,stage:0,sort:'day'};
+const SORTS={day:'Day order',az:'A–Z (Vietnamese)',due:'Review soonest',weak:'Weakest first',missed:'Most forgotten'};
+const hlTerms=(text,terms)=>{const t=String(text),low=t.split('').map(c=>stripAll(c).toLowerCase()).join('');
+  if(low.length!==t.length||!terms.length)return escapeHtml(t);
+  const mark=new Array(t.length).fill(false);terms.forEach(q=>{if(!q)return;for(let k=low.indexOf(q);k>=0;k=low.indexOf(q,k+q.length))for(let m=0;m<q.length;m++)mark[k+m]=true;});
+  let o='',on=false;for(let k=0;k<t.length;k++){if(mark[k]&&!on){o+='<mark>';on=true;}if(!mark[k]&&on){o+='</mark>';on=false;}o+=escapeHtml(t[k]);}return o+(on?'</mark>':'');};
+function wordRow(w,terms=[]){const s=srs[w.id],f=forgot[w.id],hit=terms.length&&!terms.every(q=>stripAll((w.vi+' '+w.en).toLowerCase()).includes(q));
+  return `<div class="wi"><div><div class="vi">${hlTerms(w.vi,terms)}</div><div class="en">${hlTerms(w.en,terms)}</div>${hit&&w.ex?`<div class="wex">${hlTerms(w.ex,terms)} <span>${hlTerms(w.exEn||'',terms)}</span></div>`:''}<div class="meta">Day ${w.day}${s?` · <span class="box b${s.box}" title="memory box ${s.box} of 5">${s.box}</span> · ${s.due<=today()?'<b>review today</b>':'review in '+(s.due-today())+'d'}`:' · <span class="wnew">new</span>'}${f?` · <span class="wmiss" title="forgotten ${f.miss} times">forgotten ×${f.miss}</span>`:''}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}
+function wfActive(){return !!($('wordSearch').value.trim()||WF.scope!=='learned'||WF.box!=='any'||WF.due||WF.forgot||WF.stage||WF.sort!=='day');}
+function renderWordFilters(){
+  const seg=(id,cur,opts,key)=>{$(id).innerHTML=opts.map(([v,l,n])=>`<button type="button" class="${String(cur)===String(v)?'on':''}" data-k="${key}" data-v="${v}">${l}${n!==undefined?`<i>${n}</i>`:''}</button>`).join('');};
+  const all=Object.values(WORDS),learned=all.filter(w=>srs[w.id]).length;
+  seg('wScope',WF.scope,[['learned','My words',learned],['all','All days',all.length]],'scope');
+  seg('wBox',WF.box,[['any','Any'],['new','New'],[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5']],'box');
+  $('wFlags').innerHTML=[['due','Due today',dueIds().length],['forgot','Forgotten',Object.keys(forgot).filter(id=>WORDS[id]).length]].map(([k,l,n])=>`<button type="button" class="${WF[k]?'on':''}" data-k="flag" data-v="${k}">${l}<i>${n}</i></button>`).join('');
+  $('wStage').innerHTML=`<option value="0">All levels</option>`+STAGES.map((g,i)=>`<option value="${i+1}" ${WF.stage===i+1?'selected':''}>${escapeHtml(g.name)}</option>`).join('');
+  $('wSort').innerHTML=Object.entries(SORTS).map(([k,l])=>`<option value="${k}" ${WF.sort===k?'selected':''}>${l}</option>`).join('');
+}
+function renderWords(){
+  const raw=$('wordSearch').value.trim().toLowerCase(),terms=stripAll(raw).split(/\s+/).filter(Boolean),t=today();
+  $('wClear').hidden=!raw;
+  const g=WF.stage?STAGES[WF.stage-1]:null;
+  let list=Object.values(WORDS).filter(w=>{const s=srs[w.id];
+    if(WF.scope==='learned'&&!s)return false;
+    if(WF.box==='new'&&s)return false;
+    if(typeof WF.box==='number'&&(!s||s.box!==WF.box))return false;
+    if(WF.due&&!(s&&s.due<=t))return false;
+    if(WF.forgot&&!forgot[w.id])return false;
+    if(g&&(w.day<g.from||w.day>g.to))return false;
+    if(terms.length){const hay=stripAll((w.vi+' '+w.en+' '+(w.ex||'')+' '+(w.exEn||'')).toLowerCase());if(!terms.every(q=>hay.includes(q)))return false;}
+    return true;});
+  const pos=w=>dayMap[w.day].words.indexOf(w),byDay=(a,b)=>a.day-b.day||pos(a)-pos(b);
+  const bx=w=>(srs[w.id]||{box:0}).box,due=w=>srs[w.id]?srs[w.id].due:1e9;
+  const cmp={day:byDay,az:(a,b)=>a.vi.localeCompare(b.vi,'vi'),due:(a,b)=>due(a)-due(b)||byDay(a,b),weak:(a,b)=>(bx(a)||9)-(bx(b)||9)||byDay(a,b),missed:(a,b)=>((forgot[b.id]||{}).miss||0)-((forgot[a.id]||{}).miss||0)||byDay(a,b)}[WF.sort];
+  list.sort(cmp);
+  const n=list.length;$('wCount').innerHTML=`<b>${n}</b> word${n===1?'':'s'}${terms.length?' match':''}`;$('wReset').hidden=!wfActive();
+  $('wordList').innerHTML=n?list.slice(0,400).map(w=>wordRow(w,terms)).join('')+(n>400?`<p class="small">…and ${n-400} more. Search or filter to narrow down.</p>`:''):`<div class="empty">${ic('book','lg')}<p>${WF.scope==='learned'&&!Object.keys(srs).length?'Your words show up here after a lesson.':'No words match. Try fewer filters or <b>All days</b>.'}</p></div>`;}
+$('wordSearch').oninput=renderWords;
+$('wClear').onclick=()=>{$('wordSearch').value='';renderWords();$('wordSearch').focus();};
+$('view-words').addEventListener('click',e=>{const b=e.target.closest('.wseg button,.wchips button');if(!b)return;const k=b.dataset.k,v=b.dataset.v;
+  if(k==='scope')WF.scope=v;else if(k==='box')WF.box=(v==='any'||v==='new')?v:+v;else if(k==='flag')WF[v]=!WF[v];
+  renderWordFilters();renderWords();});
+$('wStage').onchange=e=>{WF.stage=+e.target.value;renderWords();};$('wSort').onchange=e=>{WF.sort=e.target.value;renderWords();};
+$('wReset').onclick=()=>{Object.assign(WF,{scope:'learned',box:'any',due:false,forgot:false,stage:0,sort:'day'});$('wordSearch').value='';renderWordFilters();renderWords();};
 function renderForgot(){const ids=Object.keys(forgot).filter(id=>WORDS[id]).sort((a,b)=>forgot[b].miss-forgot[a].miss);
   $('forgotPanel').innerHTML=`<div class="vhead"><div><h2>Forgotten</h2><p class="small">Get each one right twice to clear it.</p></div>${ids.length?`<button class="primary" id="fgStart">${ic('play')}Practise</button>`:''}</div>
     ${ids.length?`<div class="wordlist">${ids.map(id=>{const w=WORDS[id],f=forgot[id];return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div><div class="meta">missed ${f.miss}× · ${f.fix}/2 right since</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}).join('')}</div>`:`<div class="empty">${ic('check','lg')}<p>Nothing forgotten. Nice.</p></div>`}`;
