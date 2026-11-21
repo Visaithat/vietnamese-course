@@ -16562,7 +16562,8 @@ let pausedSession=null, bindDashboard=()=>{};
 const sphUi={mode:'home',setId:null,method:null,draft:null,editI:-1,armDelete:false,pick:{},toPick:{},accts:null,acctErr:'',sending:false,notice:'',inboxId:null};
 function validSession(x){return x&&(x.steps||[]).every(s=>!s.id||wordOf(s.id))?x:null;}
 if(!validSession(session))session=null;
-function save(o={}){store.set('vdc_progress',progress);store.set('vdc_srs',srs);store.set('vdc_forgot',forgot);store.set('vdc_settings',settings);store.set('vdc_sph',sph);store.set('vdc_session',session||pausedSession);store.set('vdc_savedAt',o.at||Date.now());saveStatus();if(!o.quiet)scheduleCloudWrite();}
+var cloudDirty=false; // true while this device has changes the online database has not confirmed yet
+function save(o={}){store.set('vdc_progress',progress);store.set('vdc_srs',srs);store.set('vdc_forgot',forgot);store.set('vdc_settings',settings);store.set('vdc_sph',sph);store.set('vdc_session',session||pausedSession);store.set('vdc_savedAt',o.at||Date.now());if(!o.quiet)cloudDirty=true;saveStatus();if(!o.quiet)scheduleCloudWrite();}
 
 // ---------- Accounts: progress kept in the online database (Supabase), merged with this browser ----------
 const SB_URL='https://ucnuozssxpumvmijrrmg.supabase.co', SB_KEY='sb_publishable_We2SZ5R3OSY_NGMqvzQHJQ_hWQrT7Ir'; // public "anon" key: it can only call the account functions, never read tables
@@ -16599,33 +16600,43 @@ function mergeSnaps(a,b){
   return {app:'vietnamese-daily-course',v:1,savedAt:Math.max(a.savedAt||0,b.savedAt||0),progress:{done,streak,last:last<0?null:last},srs:srsM,forgot:fg,settings:newer.settings||{},session:newer.session||null,sph:mergeSph(a.sph,b.sph)};
 }
 // One call to a database function (see supabase_setup.sql)
-async function rpc(fn,args){let r;
+async function rpc(fn,args,keepalive){let r;
   // New "sb_publishable_…" keys go only in the apikey header; older JWT anon keys also as Bearer
   const h={apikey:SB_KEY,'Content-Type':'application/json'};if(!/^sb_/.test(SB_KEY))h.Authorization='Bearer '+SB_KEY;
-  try{r=await fetch(SB_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:h,body:JSON.stringify(args)});}
+  const body=JSON.stringify(args);
+  try{r=await fetch(SB_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:h,body,keepalive:!!keepalive&&body.length<60000});} // keepalive: lets a save finish while the tab is closing
   catch(e){const er=new Error("Can't reach the server. Check your internet connection.");er.code='offline';throw er;}
   const t=await r.text();let j=null;try{j=t?JSON.parse(t):null;}catch(e){}
   if(!r.ok){const m=String(j&&j.message||t||r.statusText),er=new Error(m);er.code=/Could not find the function|schema cache/i.test(m)?'nosql':(m.match(/name_taken|bad_login|bad_session|bad_name|bad_password|bad_data/)||['server'])[0];throw er;}
   return j;}
-const cloud={state:ACCT?'connecting':'off',last:0,err:'',timer:null,busy:false,again:false,pulling:false};
+const cloud={state:ACCT?'connecting':'off',last:0,err:'',timer:null,busy:false,again:false,pulling:false,pulled:false}; // pulled: the online copy was read at least once, so a save can never overwrite it with an empty start
 function cloudFail(e){if(e.code==='bad_session')return signOut('You were signed out. Please log in again.');cloud.state=e.code==='offline'?'offline':'error';cloud.err=e.message;saveStatus();}
 function scheduleCloudWrite(ms=1500){if(!ACCT)return;clearTimeout(cloud.timer);cloud.timer=setTimeout(writeCloud,ms);}
-async function writeCloud(){if(!ACCT)return;clearTimeout(cloud.timer);cloud.timer=null;if(cloud.busy){cloud.again=true;return;}cloud.busy=true;
+async function writeCloud(){if(!ACCT)return;clearTimeout(cloud.timer);cloud.timer=null;
+  if(!cloud.pulled)return pullCloud(); // first read the online copy and merge; that step saves what is missing
+  if(cloud.busy){cloud.again=true;return;}cloud.busy=true;
   const snap=snapshot();
-  try{await rpc('save_progress',{p_token:ACCT.token,p_data:snap,p_saved_at:snap.savedAt});cloud.last=Date.now();cloud.state='ok';cloud.err='';}
+  try{await rpc('save_progress',{p_token:ACCT.token,p_data:snap,p_saved_at:snap.savedAt},true);cloud.last=Date.now();cloud.state='ok';cloud.err='';
+    if(store.get('vdc_savedAt',0)===snap.savedAt)cloudDirty=false;}
   catch(e){cloudFail(e);}
   cloud.busy=false;saveStatus();if(cloud.again){cloud.again=false;await writeCloud();}}
 // Read the account's copy, merge it with this browser's, and send back whatever the server was missing
 async function pullCloud(){if(!ACCT||cloud.pulling)return;cloud.pulling=true;
-  try{const r=await rpc('load_progress',{p_token:ACCT.token});cloud.state='ok';cloud.err='';
+  try{const r=await rpc('load_progress',{p_token:ACCT.token});cloud.state='ok';cloud.err='';cloud.pulled=true;
     const remote=r&&r.data&&r.data.app==='vietnamese-daily-course'?{...r.data,savedAt:r.saved_at||r.data.savedAt||0}:null;
-    if(!remote){if(hasProgress())await writeCloud();else cloud.last=Date.now();}
+    if(!remote){if(hasProgress())await writeCloud();else{cloud.last=Date.now();cloudDirty=false;}}
     else{const local=snapshot(),merged=mergeSnaps(local,remote);
       if(dataKey(merged)!==dataKey(local))applySnapshot(merged,{fromSync:true});
-      if(dataKey(merged)!==dataKey(remote))await writeCloud();else cloud.last=Date.now();}
+      if(dataKey(merged)!==dataKey(remote))await writeCloud();else{cloud.last=Date.now();cloudDirty=false;}}
   }catch(e){cloudFail(e);}
   cloud.pulling=false;saveStatus();}
-addEventListener('visibilitychange',()=>{if(!ACCT)return;if(document.visibilityState==='hidden'){if(cloud.timer)writeCloud();}else pullCloud();});
+addEventListener('visibilitychange',()=>{if(!ACCT)return;if(document.visibilityState==='hidden'){if(cloud.timer||cloudDirty)writeCloud();}else pullCloud();});
+addEventListener('pagehide',()=>{if(ACCT&&(cloud.timer||cloudDirty))writeCloud();}); // iPhone Safari does not always fire visibilitychange when a tab is closed
+// "Sync now": read the online copy, merge, then always send this device's copy and say clearly whether it worked
+async function syncNow(){if(!ACCT)return;const b=$('syncNow');if(b)b.disabled=true;
+  await pullCloud();if(cloud.pulled&&cloud.state==='ok')await writeCloud();
+  if(b)b.disabled=false;saveStatus();
+  alert(cloud.state==='ok'&&!cloudDirty?'Synced. Your progress is saved online ('+hhmm(cloud.last)+').':'Not synced yet: '+(cloud.err||'no connection')+'.\nYour progress is kept on this device. Keep this page open and try again.');}
 addEventListener('online',()=>{if(ACCT)pullCloud();});
 
 // ---------- Login / register screen ----------
@@ -16667,16 +16678,17 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-legacy]');
 function saveBannerHtml(){
   const L=ACCT&&!store.get('vdc_legacyNo',false)?legacySnap():null;
   if(L)return `<div class="banner" id="saveBanner">${ic('upload')}<span>This browser has progress saved before accounts (${Object.keys(L.progress.done).length} days, ${Object.keys(L.srs).length} words). Add it to <b>${escapeHtml(ACCT.display||ACCT.name)}</b>?</span><button class="primary" data-legacy="add">Add</button><button class="ghost" data-legacy="no">Not mine</button></div>`;
-  if(cloud.state==='offline'||cloud.state==='error')return `<div class="banner warn" id="saveBanner">${ic('cloud-off')}<span>${cloud.state==='offline'?'Offline.':'Sync problem.'} Progress is kept on this device and syncs when the connection is back.</span><button class="secondary" id="bannerSync">Retry</button></div>`;
+  if(cloud.state==='offline'||cloud.state==='error')return `<div class="banner warn" id="saveBanner">${ic('cloud-off')}<span>${cloud.state==='offline'?'Offline.':'Sync problem.'} Your progress is <b>not saved online yet</b>. It is kept on this device; keep this page open and press Sync now when the connection is back.</span><button class="secondary" id="bannerSync">Sync now</button></div>`;
   return '<div id="saveBanner"></div>';}
-document.addEventListener('click',e=>{if(e.target.closest('#bannerSync'))pullCloud();});
+document.addEventListener('click',e=>{if(e.target.closest('#bannerSync'))syncNow();});
 // The round status buttons in the header: an icon, and a label shown on wide screens
 function setChip(id,icon,txt,cls,tip=''){const c=$(id);c.className='status '+cls;c.title=tip||txt;c.innerHTML=ic(icon)+`<span class="lbl">${escapeHtml(txt)}</span>`;}
 function saveStatus(){if(!ACCT)return;const c=cloud,t=store.get('vdc_savedAt',0),who=ACCT.display||ACCT.name;
-  const [icon,txt]={connecting:['cloud','Connecting…'],ok:['cloud',`Synced · ${hhmm(c.last||t||Date.now())}`],offline:['cloud-off','Offline · saved here'],error:['cloud-off','Sync problem · saved here'],off:['disk','Not signed in']}[c.state];
-  setChip('saveChip',icon,txt,c.state==='ok'||c.state==='connecting'?'good':'warn',who+' · '+(c.err||txt));
+  const pending=c.state==='ok'&&cloudDirty; // changes on this device the online copy does not have yet
+  const [icon,txt]=pending?['cloud','Saving online…']:{connecting:['cloud','Connecting…'],ok:['cloud',`Synced · ${hhmm(c.last||t||Date.now())}`],offline:['cloud-off','Offline · NOT saved online'],error:['cloud-off','Sync problem · NOT saved online'],off:['disk','Not signed in']}[c.state];
+  setChip('saveChip',icon,txt,(c.state==='ok'||c.state==='connecting')?'good':'warn',who+' · '+(c.err||txt));
   $('acctStatus').innerHTML=`Signed in as <b>${escapeHtml(who)}</b>`;
-  $('syncStatus').textContent=c.state==='ok'?'On. Log in with the same name on your computer and your iPhone.':c.state==='connecting'?'Connecting…':(c.state==='offline'?'Offline':'Sync problem')+(c.err?' ('+c.err+')':'')+'. Progress is kept here and syncs when the connection is back.';
+  $('syncStatus').textContent=c.state==='ok'?(cloudDirty?'Saving online…':'Saved online at '+hhmm(c.last||Date.now())+'. Log in with the same name on your computer and your iPhone.'):c.state==='connecting'?'Connecting…':(c.state==='offline'?'Offline':'Sync problem')+(c.err?' ('+c.err+')':'')+'. Progress is kept here and syncs when the connection is back.';
   const b=$('saveBanner');if(b)b.outerHTML=saveBannerHtml();}
 
 // ---------- Pronunciation: online Vietnamese voice first, then a Vietnamese voice installed on the device ----------
@@ -16893,6 +16905,19 @@ function buildLesson(n){
   steps.push({t:'summary',sec:'Done'});
   return {kind:'lesson',day:n,steps,i:0,results:[]};
 }
+// "Practise each word": for every word of the day, one after another: meet it, hear it and write it, then read its meaning and write it.
+// Patterns with "..." are only introduced (they cannot be typed back reliably). It never marks the day as done.
+function buildWordPractice(n){
+  const steps=[];
+  dayMap[n].words.forEach(w=>{
+    steps.push({t:'learn',id:w.id,sec:'Learn'});
+    if(isPattern(w))return;
+    steps.push({t:'spell',id:w.id,mode:'audio',sec:'Listening',noHints:true,copy:true});
+    steps.push({t:'spell',id:w.id,mode:'meaning',sec:'Meaning',noHints:true,copy:true});
+  });
+  steps.push({t:'summary',sec:'Done'});
+  return {kind:'words',day:n,steps,i:0,results:[]};
+}
 function buildReview(ids,kind){
   const steps=[];ids.forEach((id,k)=>steps.push({t:'review',id,mode:kind==='forgot'?(isPattern(WORDS[id])?'meaning':k%2?'listen':'recall'):pickMode(id),sec:'Review'}));
   steps.push({t:'summary',sec:'Done'});return {kind,steps,i:0,results:[]};
@@ -16922,7 +16947,7 @@ function renderToday(){
   const head=`<div class="lessonbar">${canBack?`<button class="iconbtn" id="backBtn" title="Previous step (←)" aria-label="Previous step">${ic('arrowl')}</button>`:''}<button class="iconbtn" id="quitBtn" title="Pause">${ic('pause')}</button><div class="progress"><div style="width:${session.i/(session.steps.length-1)*100}%"></div></div><span class="count">${session.i+1}/${session.steps.length}</span></div>`;
   box.innerHTML=head+`<div class="stage" id="stage"></div>`;
   if($('backBtn'))$('backBtn').onclick=back;
-  $('quitBtn').onclick=()=>{pausedSession=session;session=null;save();
+  $('quitBtn').onclick=()=>{if(session.kind!=='words')pausedSession=session;session=null;save(); // word practice just ends: Continue on Today stays the day lesson
     if(pausedSession&&pausedSession.kind==='sph'){sphUi.mode='set';sphUi.setId=pausedSession.setId;showView('sph');}
     else renderToday();};
   (RENDER[st.t]||RENDER.summary)(st,$('stage'));
@@ -16939,11 +16964,12 @@ function dashboardHtml(){
     main=`<span class="daylabel ${cp?'cp':''}">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span></span><h2>${escapeHtml(d.title)}</h2>
     <div class="preview">${d.words.slice(0,8).map(w=>`<span>${escapeHtml(w.vi)}</span>`).join('')}${d.words.length>8?`<span class="more">+${d.words.length-8}</span>`:''}</div>
     <div class="meta">${ic('sparkle','sm')} ${d.words.length} new${due?` ${dot} ${ic('retry','sm')} ${Math.min(due,20)} review`:''}${cp?` ${dot} ${ic('star','sm')} week test`:''} ${dot} ${ic('clock','sm')} ${Math.round(12+d.words.length*1.3+Math.min(due,n>70?30:20)*.4+(d.grammar?d.grammar.length*1.5:0)+(d.reading?6:0)+(d.listen?4:0))} min</div>
-    <div class="actions">${paused?`<button class="primary" id="resumeBtn">${ic('play')} Continue</button><button class="ghost" id="startBtn">Restart</button>`:`<button class="primary" id="startBtn">${ic('play')} Start Day ${n}</button>`}</div>`;}
+    <div class="actions">${paused?`<button class="primary" id="resumeBtn">${ic('play')} Continue</button><button class="ghost" id="startBtn">Restart</button>`:`<button class="primary" id="startBtn">${ic('play')} Start Day ${n}</button>`}<button class="secondary" id="wordsBtn">${ic('pencil')} Practise each word</button></div>`;}
   const extra=`<div class="tiles"><button class="tile" id="revBtn" ${due?'':'disabled'}><span class="tic">${ic('retry')}</span><span><b>${due}</b><small>to review</small></span></button>
   <button class="tile hot" id="fgBtn" ${fc?'':'disabled'}><span class="tic">${ic('forgot')}</span><span><b>${fc}</b><small>forgotten</small></span></button></div>`;
   bindDashboard=()=>{
     if($('startBtn'))$('startBtn').onclick=()=>{pausedSession=null;startSession(buildLesson(n));};
+    if($('wordsBtn'))$('wordsBtn').onclick=()=>startSession(buildWordPractice(n)); // keeps a paused lesson, so Continue still works afterwards
     if($('resumeBtn'))$('resumeBtn').onclick=()=>{const p=pausedSession||store.get('vdc_session',null);pausedSession=null;startSession(p);};
     if($('revBtn'))$('revBtn').onclick=()=>startSession(buildReview(dueIds(null).slice(0,30),'review'));
     if($('fgBtn'))$('fgBtn').onclick=()=>startSession(buildReview(shuffle(Object.keys(forgot)).slice(0,25),'forgot'));
@@ -16974,7 +17000,9 @@ function retryStep(){attempt++;hintsUsed=0;renderToday();}
 function retryButton(){const nx=$('nextBtn');if(!nx||$('retryBtn'))return;const b=document.createElement('button');b.className='secondary';b.id='retryBtn';b.innerHTML=ic('retry')+'Try again';b.onclick=retryStep;nx.before(b);}
 const tryTag=()=>revisit?' · again':attempt>1?` · try ${attempt}`:'';
 const verdictNote=ok=>!ok||revisit?'':attempt>1?`<div class="small">Fixed on try ${attempt}</div>`:hintsUsed?`<div class="small">With ${hintsUsed} hint${hintsUsed>1?'s':''}. Next time try without.</div>`:'';
-function finishCheck(ok){['checkBtn','skipBtn','hintBtn','clearBtn'].forEach(id=>{if($(id))$(id).hidden=true;});const nx=$('nextBtn');nx.hidden=false;if(!ok)retryButton();nx.focus();}
+function finishCheck(ok){['checkBtn','skipBtn','hintBtn','clearBtn'].forEach(id=>{if($(id))$(id).hidden=true;});const nx=$('nextBtn');nx.hidden=false;if(!ok)retryButton();nx.focus();
+  const forced=!ok&&$('stage')&&$('stage').dataset.copy; // Practise each word: Next stays hidden until the word is written correctly
+  if(forced){nx.hidden=true;const rb=$('retryBtn');if(rb){rb.className='primary';rb.innerHTML=ic('retry')+'Write it again';rb.focus();}}}
 function checkFlow(stage,answers,{onResult,showAnswer=true,extraAfter=''}={}){
   const inp=$('ans'),fb=stage.querySelector('.fb');
   let done=false;
@@ -17023,10 +17051,14 @@ const RENDER={
 
   spell(st,el){const w=wordOf(st.id);
     const q=st.mode==='audio'?`${bigPlay(w.vi)}<div class="prompt">${st.noHints?'Type the word you hear':'Spell the word you hear'}</div>`:`<div class="prompt">${escapeHtml(w.en)}</div><div class="small" style="margin:-8px 0 12px">${st.noHints?'Write it in Vietnamese':'Spell it in Vietnamese'}</div>`;
-    el.innerHTML=`<div class="kind">${st.noHints?(st.mode==='audio'?'Listening':'Meaning'):'Spelling'}${tryTag()}</div>${q}${answerArea('Type it with tone marks…')}${stepButtons('Check',!st.noHints)}`;
+    // Practise each word (st.copy): after a wrong answer the learner must write it again with the answer in view, then continues
+    const reveal=!!st.copy&&(revisit?attempt>2:attempt>1);
+    if(st.copy)el.dataset.copy='1';
+    const ans=reveal?`<div class="exbox"><div class="small">Answer · write it again</div><div class="vi">${escapeHtml(w.vi)} ${sayBtns(w.vi)}</div></div>`:'';
+    el.innerHTML=`<div class="kind">${st.noHints?(st.mode==='audio'?'Listening':'Meaning'):'Spelling'}${tryTag()}</div>${q}${ans}${answerArea('Type it with tone marks…')}${stepButtons('Check',!st.noHints)}`;
     if(st.mode==='audio')autoSay(w.vi);
     if(!st.noHints)setupHints(wordHints(w,st.mode));
-    checkFlow(el,[w.vi],{onResult:g=>record(g.ok),extraAfter:`<div class="small" style="margin-top:6px">${escapeHtml(w.vi)}${w.en?` · ${escapeHtml(w.en)}`:''}</div>`});},
+    checkFlow(el,[w.vi],{onResult:g=>record(g.ok),extraAfter:`<div class="small" style="margin-top:6px">${escapeHtml(w.vi)}${w.en?` · ${escapeHtml(w.en)}`:''}</div>${st.copy&&w.ex?exampleBox(w):''}`});},
 
   make(st,el){const w=WORDS[st.id],target=w.make.vi[0];
     el.innerHTML=`<div class="kind">Sentences${tryTag()}</div><div class="wordline">${escapeHtml(w.vi)} <span class="muted">· ${escapeHtml(w.en)}</span></div>
@@ -17150,15 +17182,15 @@ const RENDER={
     const hinted=r.filter(x=>x.ok&&x.hints).length,fixed=r.filter(x=>!x.ok&&x.retryOk).length;
     const missed=[...new Set(session.results.filter(x=>!x.ok&&x.id).map(x=>x.id))];
     const bySec={};r.forEach(x=>{const s=bySec[x.sec]=bySec[x.sec]||[0,0];s[1]++;if(x.ok)s[0]++;});
-    const isLesson=session.kind==='lesson',isSph=session.kind==='sph',nd=nextDay();
+    const isLesson=session.kind==='lesson',isSph=session.kind==='sph',isWords=session.kind==='words',nd=nextDay();
     const C=2*Math.PI*52;
-    el.innerHTML=`<div class="kind">${isLesson?`Day ${session.day} complete`:isSph?'Homework complete':'Review complete'}</div>
+    el.innerHTML=`<div class="kind">${isLesson?`Day ${session.day} complete`:isWords?`Day ${session.day} · word practice complete`:isSph?'Homework complete':'Review complete'}</div>
       <div class="score"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52" stroke-dasharray="${(pct/100*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/></svg><b>${pct}%</b></div>
       <p class="meaning">${ok} of ${r.length} correct on the first try${hinted?` (${hinted} with hints)`:''}.${fixed?` ${fixed} more fixed with Try again.`:''}</p>
       <div class="secrows">${SEC_ORDER.filter(s=>bySec[s]).map(s=>`<div class="secrow">${ic(SEC_ICON[s]||'note','sm')}<span>${s}</span><b>${bySec[s][0]}/${bySec[s][1]}</b></div>`).join('')}</div>
       ${missed.length?`<div class="label">Words to watch</div><div class="wordlist">${missed.map(id=>{const w=wordOf(id);if(!w)return '';return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en||'No translation')}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}).join('')}</div>`:''}
       <div class="actions"><button class="primary" id="doneBtn">${isSph?'Back to SPH':isLesson&&nd?'Back to Today':'Done'}</button></div>`;
-    $('doneBtn').onclick=()=>{const setId=isSph?session.setId:null;session=null;if(!isSph)pausedSession=null;save();
+    $('doneBtn').onclick=()=>{const setId=isSph?session.setId:null;session=null;if(!isSph&&!isWords)pausedSession=null;save();
       if(setId){sphUi.mode='set';sphUi.setId=setId;showView('sph');}else renderToday();};$('doneBtn').focus();}
 };
 function finishSession(){
@@ -17167,12 +17199,15 @@ function finishSession(){
     const r=session.results.filter(x=>!x.retry),score=r.length?Math.round(r.filter(x=>x.ok).length/r.length*100):100;
     const prev=progress.done[n];progress.done[n]={score:Math.max(score,prev?prev.score:0),date:t};
     if(progress.last!==t){progress.streak=progress.last===t-1?progress.streak+1:1;progress.last=t;}
+  }else if(session.kind==='words'){ // word practice: feeds the memory boxes and Forgotten list, never marks the day done
+    const by={};session.results.forEach(r=>{if(r.id&&!r.retry)by[r.id]=(by[r.id]!==false)&&r.ok;});
+    Object.entries(by).forEach(([id,ok])=>{if(WORDS[id])reviewResult(id,ok,false);});
   }else if(session.kind==='sph'){ // remember how this homework went; it does not touch course days or the memory boxes
     const set=sphSetById(session.setId);
     if(set){const r=session.results.filter(x=>!x.retry),score=r.length?Math.round(r.filter(x=>x.ok).length/r.length*100):100;
       set.best=Math.max(set.best||0,score);set.last=score;set.runs=(set.runs||0)+1;set.updatedAt=Date.now();}
   }
-  save();
+  save();scheduleCloudWrite(0); // a finished day goes online right away, not after the usual 1.5 s wait
 }
 
 // ---------- Stats, tabs, map, words, forgotten ----------
@@ -17194,9 +17229,9 @@ function renderMap(){const nd=nextDay();let h='';
   $('mapGrid').innerHTML=h;
   const nt=$('mapGrid').querySelector('.daytile.next');if(nt&&nd>7)nt.scrollIntoView({block:'center'});
   $('mapGrid').querySelectorAll('.daytile[data-day]').forEach(b=>b.onclick=()=>{const n=+b.dataset.day,d=dayMap[n];
-    $('mapDetail').innerHTML=`<div class="panel" style="margin-top:12px"><div class="rowbetween"><div><span class="daylabel">Day ${n}</span><h2 style="margin:6px 0 0">${escapeHtml(d.title)}</h2></div><button class="primary" id="mapStart">${progress.done[n]?ic('retry')+'Practise again':ic('play')+'Start'}</button></div>
+    $('mapDetail').innerHTML=`<div class="panel" style="margin-top:12px"><div class="rowbetween"><div><span class="daylabel">Day ${n}</span><h2 style="margin:6px 0 0">${escapeHtml(d.title)}</h2></div><div class="actions" style="margin:0"><button class="secondary" id="mapWords">${ic('pencil')} Practise each word</button><button class="primary" id="mapStart">${progress.done[n]?ic('retry')+'Practise again':ic('play')+'Start'}</button></div></div>
       <div class="wordlist" style="margin-top:12px">${d.words.map(w=>`<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`).join('')}</div></div>`;
-    $('mapStart').onclick=()=>startSession(buildLesson(n));$('mapDetail').scrollIntoView({behavior:'smooth'});});}
+    $('mapStart').onclick=()=>startSession(buildLesson(n));$('mapWords').onclick=()=>startSession(buildWordPractice(n));$('mapDetail').scrollIntoView({behavior:'smooth'});});}
 function wordRow(w){const s=srs[w.id];return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en)}</div><div class="meta">Day ${w.day}${s?` · <span class="box b${s.box}" title="memory box ${s.box} of 5">${s.box}</span> · ${s.due<=today()?'<b>review today</b>':'review in '+(s.due-today())+'d'}`:''}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}
 function renderWords(){const q=stripAll($('wordSearch').value.trim().toLowerCase()),all=$('showAll').checked;
   const list=Object.values(WORDS).filter(w=>(all||srs[w.id])&&(!q||stripAll(w.vi.toLowerCase()).includes(q)||w.en.toLowerCase().includes(q)));
@@ -17605,7 +17640,7 @@ window.VDC={shiftDays(n){store.set('vdc_clock',clock+n);location.reload();},rese
 if(session){pausedSession=session;session=null;}
 if(hosted){$('voiceHelpHosted').hidden=false;$('voiceHelpLocal').hidden=true;$('voiceSource').closest('.setrow').hidden=true;}
 applyTheme();
-$('logoutBtn').onclick=()=>signOut();$('syncNow').onclick=()=>pullCloud();
+$('logoutBtn').onclick=()=>signOut();$('syncNow').onclick=syncNow;
 // Header account button: shows who is signed in, with Log out / Switch account
 if(ACCT){const who=ACCT.display||ACCT.name;$('acctAv').textContent=who.slice(0,1);$('acctName').textContent=who;$('acctMenuName').textContent=who;$('acctBtn').title='Account: '+who;}
 const acctMenu=open=>{$('acctMenu').hidden=!open;$('acctBtn').setAttribute('aria-expanded',String(open));};
