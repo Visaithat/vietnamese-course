@@ -83,6 +83,9 @@ kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2
 /* Today */
 .banner{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:10px;font-size:.92rem}.banner>span{flex:1;min-width:0}.banner>.ic{color:var(--accent)}.banner.warn{background:var(--warn);border-color:var(--warnline)}.banner.warn>.ic{color:var(--warnink)}.banner button{padding:8px 12px}.banner .iconbtn{width:32px;height:32px;background:transparent;color:var(--muted)}
 .daycard{padding:24px}
+.daynav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}.daynav .iconbtn{width:34px;height:34px}.daynav .iconbtn:disabled{opacity:.35}.daynav .iconbtn .ic{width:18px;height:18px}
+.daynav select{border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--surface);max-width:100%;font-size:.9rem;font-weight:600}.daynav .back{padding:7px 12px;font-size:.88rem}
+.daydone{color:var(--goodink);background:var(--good);border-radius:8px;padding:2px 8px;font-size:.78rem;font-weight:700;letter-spacing:0;text-transform:none}
 .daylabel{display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}.daylabel .of{color:var(--muted2)}.daylabel.cp{color:var(--warnink)}
 .daycard h2{font-size:clamp(1.6rem,4.5vw,2.2rem);margin:6px 0 14px}
 .preview{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.preview span{background:var(--surface);border-radius:10px;padding:5px 10px;font-weight:600;font-size:.92rem}.preview .more{background:transparent;color:var(--muted)}
@@ -16559,6 +16562,7 @@ const wordOf=id=>WORDS[id]||SPH_WORDS[id];
 const settings=Object.assign({source:'auto',speed:'normal',telex:true,autoplay:true},store.get('vdc_settings',{}));
 let session=store.get('vdc_session',null);
 let pausedSession=null, bindDashboard=()=>{};
+let viewDay=null; // lesson shown on the Today card; null = the next lesson to do
 const sphUi={mode:'home',setId:null,method:null,draft:null,editI:-1,armDelete:false,pick:{},toPick:{},accts:null,acctErr:'',sending:false,notice:'',inboxId:null};
 function validSession(x){return x&&(x.steps||[]).every(s=>!s.id||wordOf(s.id))?x:null;}
 if(!validSession(session))session=null;
@@ -16954,21 +16958,39 @@ function renderToday(){
   const inp=$('ans');if(inp&&!('ontouchstart'in window))inp.focus();
 }
 function dashboardHtml(){
-  const n=nextDay(),due=dueIds(n).length,fc=Object.keys(forgot).length;
+  const nd=nextDay(),fc=Object.keys(forgot).length;
+  // The card normally shows the next lesson; the arrows and the list let you jump to any earlier (or already open) lesson
+  const days=[];for(let k=1;k<=TOTAL_DAYS;k++)if(dayMap[k]&&unlocked(k))days.push(k);
+  if(viewDay!==null&&!days.includes(viewDay))viewDay=null;
+  const n=viewDay!==null?viewDay:nd,isNow=n===nd,due=dueIds(nd).length;
   const paused=pausedSession||store.get('vdc_session',null);
+  const pausedHere=!!paused&&(paused.kind==='lesson'?paused.day===n:isNow); // a paused lesson is offered on its own day
   let main='';
   if(!COURSE.length)main=`<div class="banner warn">${ic('alert')}<span>No lesson data. Keep the <b>course_data</b> folder next to this file.</span></div>`;
-  else if(n===null)main=LAST_DAY<TOTAL_DAYS?`<div class="empty">${ic('trophy','lg')}<h2>Days 1–${LAST_DAY} done</h2><p>Great work! Days ${LAST_DAY+1}–${TOTAL_DAYS} come in the next update. Keep your words fresh with the reviews below.</p></div>`
-    :`<div class="empty">${ic('trophy','lg')}<h2>All ${TOTAL_DAYS} days done</h2><p>Keep your words fresh with the reviews below.</p></div>`;
-  else{const d=dayMap[n],cp=isCheckpoint(n),dot='<span class="dot"></span>';
-    main=`<span class="daylabel ${cp?'cp':''}">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span></span><h2>${escapeHtml(d.title)}</h2>
+  else if(n===null)main=(LAST_DAY<TOTAL_DAYS?`<div class="empty">${ic('trophy','lg')}<h2>Days 1–${LAST_DAY} done</h2><p>Great work! Days ${LAST_DAY+1}–${TOTAL_DAYS} come in the next update. Keep your words fresh with the reviews below.</p></div>`
+    :`<div class="empty">${ic('trophy','lg')}<h2>All ${TOTAL_DAYS} days done</h2><p>Keep your words fresh with the reviews below.</p></div>`)
+    +(days.length?`<div class="actions" style="justify-content:center"><button class="secondary" id="dayLast">${ic('arrowl')} Practise an earlier lesson</button></div>`:'');
+  else{const d=dayMap[n],cp=isCheckpoint(n),dot='<span class="dot"></span>',i=days.indexOf(n),dn=progress.done[n];
+    const nav=`<div class="daynav"><button class="iconbtn" id="dayPrev" ${i>0?'':'disabled'} title="Previous lesson" aria-label="Previous lesson">${ic('arrowl')}</button>
+      <span class="daylabel ${cp?'cp':''}">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span></span>
+      <button class="iconbtn" id="dayNext" ${i<days.length-1?'':'disabled'} title="Next lesson" aria-label="Next lesson">${ic('arrow')}</button>
+      <select id="daySel" aria-label="Go to a lesson">${days.slice().reverse().map(k=>`<option value="${k}" ${k===n?'selected':''}>Day ${k} · ${escapeHtml(dayMap[k].title)}${progress.done[k]?' ✓':''}</option>`).join('')}</select>
+      ${isNow?'':`<button class="ghost back" id="dayNow">${ic('arrow','sm')} ${nd?'Back to Day '+nd:'Back'}</button>`}
+      ${dn&&!isNow?`<span class="daydone">done · ${dn.score}%</span>`:''}</div>`;
+    main=`${nav}<h2>${escapeHtml(d.title)}</h2>
     <div class="preview">${d.words.slice(0,8).map(w=>`<span>${escapeHtml(w.vi)}</span>`).join('')}${d.words.length>8?`<span class="more">+${d.words.length-8}</span>`:''}</div>
-    <div class="meta">${ic('sparkle','sm')} ${d.words.length} new${due?` ${dot} ${ic('retry','sm')} ${Math.min(due,20)} review`:''}${cp?` ${dot} ${ic('star','sm')} week test`:''} ${dot} ${ic('clock','sm')} ${Math.round(12+d.words.length*1.3+Math.min(due,n>70?30:20)*.4+(d.grammar?d.grammar.length*1.5:0)+(d.reading?6:0)+(d.listen?4:0))} min</div>
-    <div class="actions">${paused?`<button class="primary" id="resumeBtn">${ic('play')} Continue</button><button class="ghost" id="startBtn">Restart</button>`:`<button class="primary" id="startBtn">${ic('play')} Start Day ${n}</button>`}<button class="secondary" id="wordsBtn">${ic('pencil')} Practise each word</button></div>`;}
+    <div class="meta">${ic('sparkle','sm')} ${d.words.length} ${isNow?'new':'words'}${isNow&&due?` ${dot} ${ic('retry','sm')} ${Math.min(due,20)} review`:''}${cp?` ${dot} ${ic('star','sm')} week test`:''} ${dot} ${ic('clock','sm')} ${Math.round(12+d.words.length*1.3+(isNow?Math.min(due,n>70?30:20)*.4:0)+(d.grammar?d.grammar.length*1.5:0)+(d.reading?6:0)+(d.listen?4:0))} min</div>
+    <div class="actions">${pausedHere?`<button class="primary" id="resumeBtn">${ic('play')} Continue</button><button class="ghost" id="startBtn">Restart</button>`:`<button class="primary" id="startBtn">${isNow?ic('play')+' Start Day '+n:ic('retry')+' Practise Day '+n+' again'}</button>`}<button class="secondary" id="wordsBtn">${ic('pencil')} Practise each word</button></div>`;}
   const extra=`<div class="tiles"><button class="tile" id="revBtn" ${due?'':'disabled'}><span class="tic">${ic('retry')}</span><span><b>${due}</b><small>to review</small></span></button>
   <button class="tile hot" id="fgBtn" ${fc?'':'disabled'}><span class="tic">${ic('forgot')}</span><span><b>${fc}</b><small>forgotten</small></span></button></div>`;
   bindDashboard=()=>{
-    if($('startBtn'))$('startBtn').onclick=()=>{pausedSession=null;startSession(buildLesson(n));};
+    const go=k=>{viewDay=k===nd?null:k;renderToday();};
+    if($('dayPrev'))$('dayPrev').onclick=()=>go(days[days.indexOf(n)-1]);
+    if($('dayNext'))$('dayNext').onclick=()=>go(days[days.indexOf(n)+1]);
+    if($('daySel'))$('daySel').onchange=e=>go(+e.target.value);
+    if($('dayNow'))$('dayNow').onclick=()=>go(nd);
+    if($('dayLast'))$('dayLast').onclick=()=>go(days[days.length-1]);
+    if($('startBtn'))$('startBtn').onclick=()=>{if(pausedHere)pausedSession=null;const s=buildLesson(n);s.fromNext=isNow;startSession(s);}; // practising an earlier day keeps a paused lesson
     if($('wordsBtn'))$('wordsBtn').onclick=()=>startSession(buildWordPractice(n)); // keeps a paused lesson, so Continue still works afterwards
     if($('resumeBtn'))$('resumeBtn').onclick=()=>{const p=pausedSession||store.get('vdc_session',null);pausedSession=null;startSession(p);};
     if($('revBtn'))$('revBtn').onclick=()=>startSession(buildReview(dueIds(null).slice(0,30),'review'));
@@ -17190,7 +17212,9 @@ const RENDER={
       <div class="secrows">${SEC_ORDER.filter(s=>bySec[s]).map(s=>`<div class="secrow">${ic(SEC_ICON[s]||'note','sm')}<span>${s}</span><b>${bySec[s][0]}/${bySec[s][1]}</b></div>`).join('')}</div>
       ${missed.length?`<div class="label">Words to watch</div><div class="wordlist">${missed.map(id=>{const w=wordOf(id);if(!w)return '';return `<div class="wi"><div><div class="vi">${escapeHtml(w.vi)}</div><div class="en">${escapeHtml(w.en||'No translation')}</div></div><div class="btns">${sayBtns(w.vi)}</div></div>`;}).join('')}</div>`:''}
       <div class="actions"><button class="primary" id="doneBtn">${isSph?'Back to SPH':isLesson&&nd?'Back to Today':'Done'}</button></div>`;
-    $('doneBtn').onclick=()=>{const setId=isSph?session.setId:null;session=null;if(!isSph&&!isWords)pausedSession=null;save();
+    $('doneBtn').onclick=()=>{const setId=isSph?session.setId:null;if(isLesson&&session.fromNext!==false)viewDay=null; // finished the next lesson: the card moves on to the new next lesson
+      const keepPaused=isLesson&&pausedSession&&pausedSession.kind==='lesson'&&pausedSession.day!==session.day; // an earlier day was practised: keep the paused lesson
+      session=null;if(!isSph&&!isWords&&!keepPaused)pausedSession=null;save();
       if(setId){sphUi.mode='set';sphUi.setId=setId;showView('sph');}else renderToday();};$('doneBtn').focus();}
 };
 function finishSession(){
