@@ -86,6 +86,8 @@ kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2
 .daynav{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .daystep{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px}
 .daystep .iconbtn{width:30px;height:30px;background:transparent;color:var(--muted)}.daystep .iconbtn:hover:not(:disabled){background:var(--chip);color:var(--ink)}.daystep .iconbtn:disabled{opacity:.3}.daystep .iconbtn .ic{width:16px;height:16px}
+.daystep .iconbtn.locked{opacity:.65;color:var(--warnink)}.daystep .iconbtn.locked:hover{background:var(--warn);opacity:1}.daystep .iconbtn.shake{animation:shake .28s}
+.daylock{display:inline-flex;align-items:center;gap:6px;margin:4px 0 8px;padding:6px 12px;border-radius:10px;background:var(--warn);border:1px solid var(--warnline);color:var(--warnink);font-size:.82rem;font-weight:600;animation:fade .15s ease-out}
 .daypick{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;background:transparent;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}.daypick:hover{background:var(--chip)}.daypick.cp{color:var(--warnink)}.daypick .of{color:var(--muted2)}.daypick .chev{font-size:.72rem;color:var(--muted);margin-left:1px}
 .daynav-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .daynav .back{padding:6px 12px;font-size:.82rem;border-radius:99px;background:var(--soft);color:var(--softink)}.daynav .back:hover{filter:brightness(1.08)}
@@ -16580,7 +16582,7 @@ const wordOf=id=>WORDS[id]||SPH_WORDS[id];
 const settings=Object.assign({source:'auto',speed:'normal',telex:true,autoplay:true},store.get('vdc_settings',{}));
 let session=store.get('vdc_session',null);
 let pausedSession=null, bindDashboard=()=>{};
-let viewDay=null; // lesson shown on the Today card; null = the next lesson to do
+let viewDay=null, dayLockTimer=null; // lesson shown on the Today card; null = the next lesson to do
 const sphUi={mode:'home',setId:null,method:null,draft:null,editI:-1,armDelete:false,pick:{},toPick:{},accts:null,acctErr:'',sending:false,notice:'',inboxId:null};
 function validSession(x){return x&&(x.steps||[]).every(s=>!s.id||wordOf(s.id))?x:null;}
 if(!validSession(session))session=null;
@@ -16989,10 +16991,14 @@ function dashboardHtml(){
     :`<div class="empty">${ic('trophy','lg')}<h2>All ${TOTAL_DAYS} days done</h2><p>Keep your words fresh with the reviews below.</p></div>`)
     +(days.length?`<div class="actions" style="justify-content:center"><button class="secondary" id="dayLast">${ic('arrowl')} Practise an earlier lesson</button></div>`:'');
   else{const d=dayMap[n],cp=isCheckpoint(n),dot='<span class="dot"></span>',i=days.indexOf(n),dn=progress.done[n];
-    const step=days.length>1?`<div class="daystep"><button class="iconbtn" id="dayPrev" ${i>0?'':'disabled'} title="Previous lesson" aria-label="Previous lesson">${ic('arrowl')}</button><button class="daypick ${cp?'cp':''}" id="dayPick" title="Choose any lesson" aria-label="Choose any lesson">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span><span class="chev" aria-hidden="true">▾</span></button><button class="iconbtn" id="dayNext" ${i<days.length-1?'':'disabled'} title="Next lesson" aria-label="Next lesson">${ic('arrow')}</button></div>`
+    const hasNext=i<days.length-1,nextLocked=!hasNext&&n<LAST_DAY&&!!dayMap[n+1];
+    const nextBtn=hasNext?`<button class="iconbtn" id="dayNext" title="Next lesson (→)" aria-label="Next lesson">${ic('arrow')}</button>`
+      :nextLocked?`<button class="iconbtn locked" id="dayNext" aria-disabled="true" title="Complete Day ${n} to unlock Day ${n+1}" aria-label="Complete Day ${n} to unlock Day ${n+1}">${ic('lock','sm')}</button>`
+      :`<button class="iconbtn" id="dayNext" disabled title="Last lesson" aria-label="Last lesson">${ic('arrow')}</button>`;
+    const step=days.length>1||nextLocked?`<div class="daystep"><button class="iconbtn" id="dayPrev" ${i>0?'':'disabled'} title="Previous lesson (←)" aria-label="Previous lesson">${ic('arrowl')}</button><button class="daypick ${cp?'cp':''}" id="dayPick" title="Choose any lesson" aria-label="Choose any lesson">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span><span class="chev" aria-hidden="true">▾</span></button>${nextBtn}</div>`
       :`<span class="daylabel ${cp?'cp':''}">${cp?ic('star','sm'):''}Day ${n}<span class="of">/ ${TOTAL_DAYS}</span></span>`;
     const right=!isNow?`<div class="daynav-r">${dn?`<span class="daydone">done · ${dn.score}%</span>`:''}<button class="back" id="dayNow">${nd?'Back to Day '+nd:'Back'} ${ic('arrow','sm')}</button></div>`:'';
-    const nav=`<div class="daynav">${step}${right}</div>`;
+    const nav=`<div class="daynav">${step}${right}</div><div class="daylock" id="dayLock" role="status" hidden></div>`;
     main=`${nav}<h2>${escapeHtml(d.title)}</h2>
     <div class="preview">${d.words.slice(0,8).map(w=>`<span>${escapeHtml(w.vi)}</span>`).join('')}${d.words.length>8?`<span class="more">+${d.words.length-8}</span>`:''}</div>
     <div class="meta">${ic('sparkle','sm')} ${d.words.length} ${isNow?'new':'words'}${isNow&&due?` ${dot} ${ic('retry','sm')} ${Math.min(due,20)} review`:''}${cp?` ${dot} ${ic('star','sm')} week test`:''} ${dot} ${ic('clock','sm')} ${Math.round(12+d.words.length*1.3+(isNow?Math.min(due,n>70?30:20)*.4:0)+(d.grammar?d.grammar.length*1.5:0)+(d.reading?6:0)+(d.listen?4:0))} min</div>
@@ -17000,9 +17006,13 @@ function dashboardHtml(){
   const extra=`<div class="tiles"><button class="tile" id="revBtn" ${due?'':'disabled'}><span class="tic">${ic('retry')}</span><span><b>${due}</b><small>to review</small></span></button>
   <button class="tile hot" id="fgBtn" ${fc?'':'disabled'}><span class="tic">${ic('forgot')}</span><span><b>${fc}</b><small>forgotten</small></span></button></div>`;
   bindDashboard=()=>{
-    const go=k=>{viewDay=k===nd?null:k;renderToday();};
+    const go=k=>{clearTimeout(dayLockTimer);viewDay=k===nd?null:k;renderToday();};
+    const showLock=()=>{const b=$('dayNext'),m=$('dayLock');if(!b||!m)return;
+      m.innerHTML=`${ic('lock','sm')}<span>Complete Day ${n} to unlock Day ${n+1}</span>`;m.hidden=false;
+      b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');
+      clearTimeout(dayLockTimer);dayLockTimer=setTimeout(()=>{const x=$('dayLock');if(x)x.hidden=true;},3500);};
     if($('dayPrev'))$('dayPrev').onclick=()=>go(days[days.indexOf(n)-1]);
-    if($('dayNext'))$('dayNext').onclick=()=>go(days[days.indexOf(n)+1]);
+    if($('dayNext'))$('dayNext').onclick=()=>{const idx=days.indexOf(n);if(idx<days.length-1)go(days[idx+1]);else if(n<LAST_DAY&&dayMap[n+1])showLock();};
     if($('dayPick'))$('dayPick').onclick=()=>openDayPicker(days,n,nd,go);
     if($('dayNow'))$('dayNow').onclick=()=>go(nd);
     if($('dayLast'))$('dayLast').onclick=()=>go(days[days.length-1]);
@@ -17719,13 +17729,18 @@ const acctMenu=open=>{$('acctMenu').hidden=!open;$('acctBtn').setAttribute('aria
 $('acctBtn').onclick=e=>{e.stopPropagation();acctMenu($('acctMenu').hidden);};
 document.addEventListener('click',e=>{if(!$('acctMenu').hidden&&!e.target.closest('.acct'))acctMenu(false);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')acctMenu(false);});
-// Left arrow = previous step, Right arrow = next (when a Next button is showing); not while typing in a box
+// Left/Right arrows: inside a lesson = previous/next step; on the Today card = previous/next lesson (not while typing or inside the lesson picker)
 document.addEventListener('keydown',e=>{
   if((e.key!=='ArrowLeft'&&e.key!=='ArrowRight')||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
   const t=e.target&&e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
-  if(!session||!document.querySelector('#view-today.active'))return;
-  if(e.key==='ArrowLeft'){const b=$('backBtn');if(b){e.preventDefault();b.click();}}
-  else{const nx=$('nextBtn');if(nx&&!nx.hidden&&!nx.disabled){e.preventDefault();nx.click();}}
+  if(!document.querySelector('#view-today.active'))return;
+  if(session){
+    if(e.key==='ArrowLeft'){const b=$('backBtn');if(b){e.preventDefault();b.click();}}
+    else{const nx=$('nextBtn');if(nx&&!nx.hidden&&!nx.disabled){e.preventDefault();nx.click();}}
+  }else if(!document.querySelector('.daypop')){
+    const b=$(e.key==='ArrowLeft'?'dayPrev':'dayNext');
+    if(b&&!b.disabled){e.preventDefault();b.click();}
+  }
 });
 $('logoutTop').onclick=$('switchBtn').onclick=()=>{$('logoutTop').disabled=$('switchBtn').disabled=true;signOut();};
 if(ACCT){renderToday();pullCloud();}
